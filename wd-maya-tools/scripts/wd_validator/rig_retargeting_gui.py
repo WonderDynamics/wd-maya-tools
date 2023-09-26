@@ -563,11 +563,28 @@ class RigRetargetingUI(object):
         check all bones to find the most popular template among bones.
         """
 
+        all_joints = [self.scene_data.rig_selection]
+        all_joints += cmds.listRelatives(all_joints[0], type='joint', ad=True)
+
+        def get_hip_bone():
+            """Find Hip bone"""
+            rig_sel = self.scene_data.rig_selection.split(':')[-1]
+            # check if rig selection is a hip bone
+            if rig_sel in static.retargeting_templates['Hips']:
+                return rig_sel
+            # if not try to find the hip bone
+            for jnt in all_joints:
+                jnt_split = jnt.split(':')[-1]
+                if jnt in static.retargeting_templates['Hips']:
+                    return jnt_split
+            return None
+
         def get_naming_index_from_hip():
             """Get the template from guessing the Hip"""
-            hips = static.retargeting_templates['Hips']
-            for index, value in enumerate(hips):
-                if value == self.scene_data.rig_selection:
+            hip_templates = static.retargeting_templates['Hips']
+            hip = get_hip_bone()
+            for index, value in enumerate(hip_templates):
+                if value == hip:
                     return index
             return -1
 
@@ -577,9 +594,6 @@ class RigRetargetingUI(object):
             msg = msg.format(self.scene_data.rig_selection)
             print(msg)
             return
-
-        all_joints = [self.scene_data.rig_selection]
-        all_joints += cmds.listRelatives(all_joints[0], type='joint', ad=True)
 
         # get template from hip and check it is valid
         index = get_naming_index_from_hip()
