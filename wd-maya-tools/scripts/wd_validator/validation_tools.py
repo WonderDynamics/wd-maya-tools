@@ -404,7 +404,7 @@ def face_check(scene_data, face_geo=None):
         # check for missing shapes from the full list
         if len(scene_data.face_blendshapes) < len(valid_blendshape_names):
             warn_msg = [
-                '  > Face blendshapes missing! Missing blendshapes may negatively impact facial animation quality.',
+                '  > Some face blendshapes missing! Missing blendshapes may negatively impact facial animation quality.',
                 '  > Please make sure missing blendshapes are left out intentionally.',
             ]
             warn_messages += warn_msg
