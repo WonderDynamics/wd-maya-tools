@@ -172,6 +172,25 @@ def poly_count_check(scene_data, poly_limit=1500000):
     return status, message
 
 
+def rig_hierarchy_check(scene_data):
+    """Checks if rig is placed inside the "_BODY" group.
+
+    Args:
+        scene_data (CollectExportData): the object with the scene data already initialized.
+    Returns:
+        bool: the result of the check, True if hierarchy is correct and Fals if it's not.
+    """
+    rig_parents = cmds.listRelatives(scene_data.rig_selection, parent=True)
+
+    if not rig_parents:
+        return False
+
+    if rig_parents[0] != scene_data.rig_group:
+        return False
+
+    return True
+
+
 def rig_check(scene_data):
     """Check if the current scene data has a rig defined. The status for this check is stored
     in the scene_data object.
@@ -183,11 +202,7 @@ def rig_check(scene_data):
     """
     character_rig = scene_data.rig_selection
 
-    if character_rig:
-        status = 'pass'
-        message = '>>> Character rig check - PASS.'
-
-    else:
+    if not character_rig:
         status = 'fail'
 
         # Check if any rig exists in the scene
@@ -198,6 +213,25 @@ def rig_check(scene_data):
             message.append('  > No rig found.')
 
         message.append('  > Make sure that the character is rigged and skinned to the rig.')
+
+        scene_data.validation_data['rig_check'] = status
+        return status, message
+
+    if not rig_hierarchy_check(scene_data):
+        status = 'fail'
+        message = ['>>> [ERROR] Character rig check - FAIL.',]
+
+        if scene_data.rig_group:
+            message.append('  > Make sure that the rig is directly parented to the \"{}\" group.'.format(scene_data.rig_group))
+
+        else:
+            message.append('  > Rig and blendshapes need to be contained inside a group with the \"_BODY\" suffix.')
+
+        scene_data.validation_data['rig_check'] = status
+        return status, message
+
+    status = 'pass'
+    message = '>>> Character rig check - PASS.'
 
     scene_data.validation_data['rig_check'] = status
     return status, message

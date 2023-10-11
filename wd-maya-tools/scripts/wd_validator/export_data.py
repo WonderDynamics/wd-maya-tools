@@ -42,6 +42,18 @@ def create_export_dir(scene_data):
     scene_data.export_dir = pack_dir
 
 
+def remove_fbx_attribute(scene_data):
+    """ Loops trought all joints in the scene and removes filmboxTypeID attribute if found.
+    Args:
+        scene_data (CollectExportData): the object holding the scene data.
+    """
+    all_joints = [scene_data.rig_selection] + cmds.listRelatives(scene_data.rig_selection, type='joint', ad=True)
+
+    for jnt in all_joints:
+        if cmds.attributeQuery('filmboxTypeID', exists=True, node=jnt):
+            cmds.deleteAttr(jnt + '.filmboxTypeID')
+
+
 def export_meshes(scene_data):
     """Export the skinned Model and its skeleton to a file in FBX format.
     Args:
@@ -50,6 +62,9 @@ def export_meshes(scene_data):
         scene_data object needs to have the export_dir defined for this method
             to be successful.
     """
+    # Remove filmboxTypeID attribute from joints
+    remove_fbx_attribute(scene_data)
+
     # Select objects
     cmds.select(clear=True)
     cmds.select(scene_data.geo_group)

@@ -87,10 +87,10 @@ class ValidationUI(object):
         self.validate_button = cmds.button(label='Refresh Validation', command=self.start_validation)
         docs_button = cmds.button(label='Documentation', command=self.open_documentation)
         self.export_all_button = cmds.button(
-            label='Export with xGen', enable=False, command=partial(self.export_data, True)
+            label='Export with xGen', enable=False, command=self.export_with_xgen
         )
         self.export_without_xgen_button = cmds.button(
-            label='Export without xGen', enable=False, command=self.export_data
+            label='Export without xGen', enable=False, command=self.export_without_xgen
         )
         abort_button = cmds.button(label='Abort', command=self.close_window)
         terminal_button = cmds.button(label='>_', command=self.open_script_terminal)
@@ -501,7 +501,17 @@ class ValidationUI(object):
         cmds.button(self.export_without_xgen_button, e=True, enable=export_char)
         cmds.button(self.export_all_button, e=True, enable=export_all)
 
-    def export_data(self, *args, xgen_export=False):
+    def export_without_xgen(self, *args):
+        """ Call the initiate_export method to export the character without xGen.
+        """
+        self.initiate_export()
+
+    def export_with_xgen(self, *args):
+        """ Call the initiate_export method to export the character with xGen.
+        """
+        self.initiate_export(xgen_export=True)
+
+    def initiate_export(self, xgen_export=False):
         """Runs the validation process and if it is successful, exports the
         data to disk.
         Args:
