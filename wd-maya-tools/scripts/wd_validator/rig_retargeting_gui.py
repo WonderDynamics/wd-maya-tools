@@ -537,7 +537,7 @@ class RigRetargetingUI(object):
 
         # check we have valid data
         if not cmds.objExists(self.scene_data.rig_selection):
-            msg = 'Could not find root joint {}. Please re run validation to update data'
+            msg = '  > Could not find root joint {}. Please re run validation to update data'
             msg = msg.format(self.scene_data.rig_selection)
             print(msg)
             return
@@ -575,7 +575,7 @@ class RigRetargetingUI(object):
             # if not try to find the hip bone
             for jnt in all_joints:
                 jnt_split = jnt.split(':')[-1]
-                if jnt in static.retargeting_templates['Hips']:
+                if jnt_split in static.retargeting_templates['Hips']:
                     return jnt_split
             return None
 
