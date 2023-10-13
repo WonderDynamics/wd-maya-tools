@@ -319,7 +319,10 @@ def copy_textures(source_path, target_dir):
         for path in source_path:
             texture_name = make_extension_lowercase(os.path.split(path)[-1])
             destination_path = os.path.join(target_dir, texture_name).replace('\\', '/')
-            shutil.copy(path, destination_path)
+            try:
+                shutil.copy(path, destination_path)
+            except shutil.SameFileError as e:
+                print(e)
 
 
 def get_eyes_data():

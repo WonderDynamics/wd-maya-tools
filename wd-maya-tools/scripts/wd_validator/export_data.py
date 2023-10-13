@@ -47,11 +47,41 @@ def remove_fbx_attribute(scene_data):
     Args:
         scene_data (CollectExportData): the object holding the scene data.
     """
-    all_joints = [scene_data.rig_selection] + cmds.listRelatives(scene_data.rig_selection, type='joint', ad=True)
+    all_joints = cmds.ls(scene_data.rig_selection, type='joint', long=True)
+    all_joints += cmds.listRelatives(scene_data.rig_selection, type='joint', ad=True, fullPath=True)
 
     for jnt in all_joints:
         if cmds.attributeQuery('filmboxTypeID', exists=True, node=jnt):
             cmds.deleteAttr(jnt + '.filmboxTypeID')
+
+
+def fix_blendshapes(scene_data):
+    """ Fix blendshapes so they don't break the geometry during export
+    Args:
+        scene_data (CollectExportData): the object holding the scene data.
+    """
+    face = scene_data.face_geo
+
+    if face:
+        # Find blendshapes
+        blendshapes = cmds.ls(cmds.listHistory(face), type='blendShape')
+
+        if blendshapes:
+            if len(blendshapes) > 1:
+                cmds.warning('More than one blendshape found on {}'.format(face))
+
+            # Fix inputs in all blendshapes
+            for blendshape in blendshapes:
+                mesh_list = cmds.listConnections(blendshape + '.inputTarget')
+
+                for mesh in mesh_list or []:
+                    src_conn = mesh + '.inMesh'
+
+                    # history connected to in mesh (should be either 1 if there are history
+                    # or 0 if there are no history connected)
+                    conns_in_mesh = cmds.listConnections(mesh + '.inMesh', p=1)
+                    for conn in conns_in_mesh or []:
+                        cmds.disconnectAttr(conn, src_conn)
 
 
 def export_meshes(scene_data):
@@ -64,7 +94,8 @@ def export_meshes(scene_data):
     """
     # Remove filmboxTypeID attribute from joints
     remove_fbx_attribute(scene_data)
-
+    # Fix blendshapes so they don't break the mesh during export
+    fix_blendshapes(scene_data)
     # Select objects
     cmds.select(clear=True)
     cmds.select(scene_data.geo_group)
@@ -82,7 +113,17 @@ def export_meshes(scene_data):
     mel.eval('FBXExportInAscii -v false')
     mel.eval('FBXExport -f \"{}\" -s'.format(export_path))
 
-    print(export_path)
+    print('\nData exported to: ' + export_path + '\n')
+
+
+def remove_fbx_suffix(material):
+    """ Remove a fbx namming conflict suffix from the mateirla name.
+    Args:
+        material (str): Name of the material.
+    Returns:
+        str: Name of the material with removed fbx suffix.
+    """
+    return material.split('_ncl1')[0]
 
 
 def export_textures(scene_data):
@@ -105,7 +146,7 @@ def export_textures(scene_data):
         else:
             type_ = 'flat'
 
-        mat_dict['material_name'] = material
+        mat_dict['material_name'] = remove_fbx_suffix(material)
         mat_dict['material_type'] = type_
         mat_dict['mesh_names'] = utilities.get_material_meshes(material)
         mat_dict['render_engine'] = 'arnold'
@@ -172,7 +213,7 @@ def export_groom(scene_data):
             )[0]
             material = cmds.listConnections('{}.surfaceShader'.format(interactive_groom_sg))[0]
 
-            new_name = 'groom{id}_{mesh}_splineDescription'.format(id=str(i), mesh=scalp_geo)
+            new_name = '{mesh}_groom{id}_splineDescription'.format(id=str(i), mesh=scalp_geo)
 
             if material not in all_materials:
                 all_materials[material] = [new_name]
@@ -211,8 +252,6 @@ def export_groom(scene_data):
         hair_mat['ior_value'] = ior
         hair_mat['ior_texture'] = None
 
-        scene_data.metadata_json['materials'].append(hair_mat)
-
     if all_interactive_grooms:
         # Export groom
         export_path = os.path.join(scene_data.export_dir, 'groom.abc').replace('\\', '/')
@@ -224,6 +263,7 @@ def export_groom(scene_data):
             job += ' -obj {}'.format(groom)
 
         cmds.xgmSplineCache(export=True, j=job)
+        scene_data.metadata_json['materials'].append(hair_mat)
 
         print('>>> All xGen grooms exported.')
 

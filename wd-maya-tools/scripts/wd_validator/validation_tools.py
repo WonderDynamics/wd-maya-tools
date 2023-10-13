@@ -180,12 +180,17 @@ def rig_hierarchy_check(scene_data):
     Returns:
         bool: the result of the check, True if hierarchy is correct and Fals if it's not.
     """
-    rig_parents = cmds.listRelatives(scene_data.rig_selection, parent=True)
+    rig_parents = cmds.listRelatives(scene_data.rig_selection, parent=True, fullPath=True)
+
+    if not scene_data.rig_group:
+        return False
+
+    rig_group = '|' + scene_data.rig_group
 
     if not rig_parents:
         return False
 
-    if rig_parents[0] != scene_data.rig_group:
+    if rig_parents[0] != rig_group:
         return False
 
     return True
