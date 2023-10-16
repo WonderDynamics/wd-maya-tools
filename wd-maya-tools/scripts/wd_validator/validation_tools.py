@@ -762,3 +762,34 @@ def groom_materials_check(scene_data):
 
     scene_data.validation_data['xGen_check'] = status
     return status, message
+
+
+def history_check(scene_data):
+    """ Goes trough all of the meshes and checks if they have pre deformation construction history.
+    Args:
+        scene_data (CollectExportData): the object with the scene data already initialized.
+    Returns:
+        tuple(str, str): the result of the check, first status (fix|pass) the then the
+            message explaining the status.
+    """
+    all_messages = []
+
+    for mesh in scene_data.all_meshes:
+        mesh_history = utilities.get_pre_skin_history(mesh)
+
+        if mesh_history:
+            all_messages.append('  > Mesh \"{}\" has construction history!'.format(mesh.split('|')[-1]))
+            scene_data.meshes_with_history.append(mesh)
+
+    if all_messages:
+        status = 'fix'
+        message = ['>>> [ERROR] Construction history check - FAIL']
+        message += all_messages
+        message.append('  > Automatic fix is available.')
+
+    else:
+        status = 'pass'
+        message = '>>> Construction history check - PASS'
+
+    scene_data.validation_data['history_check'] = status
+    return status, message

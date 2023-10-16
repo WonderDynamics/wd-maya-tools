@@ -101,6 +101,10 @@ validation_windows_data = {
         'message': 'Checking rig group suffix...',
         'help_path': GITBOOK_VALIDATION + '/error-messages/wrong-skeleton-armature-name',
     },
+    'history_check': {
+        'message': 'Checking for construction history...',
+        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/construction-history-validation',
+    },
     'poly_count_check': {
         'message': 'Checking the polygon count...',
         'help_path': GITBOOK_VALIDATION + '/error-messages/poly-count-limit-exceeded',

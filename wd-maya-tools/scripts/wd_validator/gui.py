@@ -65,7 +65,8 @@ class ValidationUI(object):
         if cmds.window('script_terminal_window', exists=True):
             cmds.deleteUI('script_terminal_window', window=True)
 
-        window_size = (self.width, self.width * 1.29)
+        # window_size = (self.width, self.width * 1.29)
+        window_size = (self.width, self.width * 1.36)
         self.window = cmds.window(self.window, title=self.title, widthHeight=window_size, sizeable=True)
 
         # Main layout
@@ -294,7 +295,10 @@ class ValidationUI(object):
         if val_type == 'referenced_data':
             val_fix.reference_data_fix()
 
-        val_fix.save_scene()
+        if val_type == 'history_check':
+            val_fix.remove_pre_skin_history(self.scene_data)
+
+        # val_fix.save_scene()
         self.start_validation()
         self.enable_export()
 
