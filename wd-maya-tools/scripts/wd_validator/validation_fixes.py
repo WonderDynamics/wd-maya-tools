@@ -70,17 +70,28 @@ def remove_pre_skin_history(scene_data):
     Args:
         scene_data (CollectExportData): the object with the scene data alreadu initialized.
     """
-    message = 'Applying this fix might break the rig.\nPlease make sure to double check everything before exporting and uploading the character.'
-    answer = cmds.confirmDialog(title='Warning', message=message, button=['Continue','Abort'], defaultButton='Continue', cancelButton='Abort', dismissString='Abort')
+    message = 'Applying this fix might break the character.\nPlease make sure to double check everything before exporting and uploading the character.'
+    message = 'Not supported history nodes detected!\nYou can apply a  bypass fix for them or keep them and hope for the best.\nIf you decide to apply a fix, please check if there are any unwanted side effects afterwards.'
+    answer = cmds.confirmDialog(title='Warning', message=message, button=['Apply Bypass Fix','Keep Nodes'], defaultButton='Apply Bypass Fix', cancelButton='Keep Nodes', dismissString='Keep Nodes')
 
-    if answer == 'Continue':
+    if answer == 'Apply Bypass Fix':
         for mesh in scene_data.meshes_with_history:
-            print('Removing non deforming history on mesh \"{}\"'.format(mesh.split('|')[-1]))
-            cmds.select(mesh)
-            mel.eval('doBakeNonDefHistory( 1, {"prePost" });')
-            cmds.select(clear=True)
+            print('Bypassing history nodes on mesh \"{}\"'.format(mesh.split('|')[-1]))
+            history = cmds.listHistory(mesh)
+
+            # Find the skin cluster node
+            for node in history:
+                if cmds.nodeType(node) == 'skinCluster':
+                    skin_cluster = node
+                    break
+            else:
+                skin_cluster = None
+
+            # Connect the skin cluster node to the shape
+            if skin_cluster:
+                cmds.connectAttr(skin_cluster + '.outputGeometry[0]', mesh + '.inMesh', force=True)
 
     else:
-        print('Aborting mesh non deforming history fix.')
+        print('Aborting mesh history fix.')
 
 
