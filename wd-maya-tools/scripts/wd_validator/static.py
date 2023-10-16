@@ -103,7 +103,7 @@ validation_windows_data = {
     },
     'history_check': {
         'message': 'Checking for construction history...',
-        'help_path': GITBOOK_VALIDATION,
+        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/construction-history-validation',
     },
     'poly_count_check': {
         'message': 'Checking the polygon count...',
