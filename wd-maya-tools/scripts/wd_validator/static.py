@@ -409,3 +409,6 @@ ik_pairs = {
             'status': None
         }
     }
+
+# Nodes that will fail a construction history check
+history_nodes = ['deleteComponent', 'geometryFilter', 'polyBase']

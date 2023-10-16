@@ -778,12 +778,15 @@ def history_check(scene_data):
         mesh_history = utilities.get_pre_skin_history(mesh)
 
         if mesh_history:
-            all_messages.append('  > Mesh \"{}\" has construction history!'.format(mesh.split('|')[-1]))
-            scene_data.meshes_with_history.append(mesh)
+            for node in mesh_history:
+                if cmds.nodeType(node, inherited=True)[0] in static.history_nodes:
+                    all_messages.append('  > Mesh \"{}\" has construction history!'.format(mesh.split('|')[-1]))
+                    scene_data.meshes_with_history.append(mesh)
+                    break
 
     if all_messages:
-        status = 'fix'
-        message = ['>>> [ERROR] Construction history check - FAIL']
+        status = 'warning_fix'
+        message = ['>>> [WARNING] Construction history check - FAIL']
         message += all_messages
         message.append('  > Automatic fix is available.')
 

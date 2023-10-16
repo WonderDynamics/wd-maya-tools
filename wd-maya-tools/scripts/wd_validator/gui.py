@@ -332,6 +332,11 @@ class ValidationUI(object):
             elif status.lower() == 'warning':
                 icon = 'wd_warning_16px.png'
 
+            elif status.lower() == 'warning_fix':
+                icon = 'wd_fix_warning_16px.png'
+
+                cmds.iconTextButton(status_button, e=True, command=partial(self.fix_button, val_type))
+
             else:
                 icon = 'wd_skip_16px.png'
 
@@ -482,7 +487,7 @@ class ValidationUI(object):
         all the validators have an accepted status. This enable state is also
         cached in a member variable.
         """
-        accepted_statuses = ['pass', 'skip', 'warning']
+        accepted_statuses = ['pass', 'skip', 'warning', 'warning_fix']
         self.export_enable = True
 
         for val in self.validation_windows.values():
