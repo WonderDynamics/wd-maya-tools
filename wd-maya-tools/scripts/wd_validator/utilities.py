@@ -385,3 +385,25 @@ def camel_case_split(text):
     split_text = ' '.join([word.capitalize() for word in split_text])
 
     return split_text
+
+
+def get_pre_skin_history(mesh):
+    """ List all non deforming history of a mesh
+    Args:
+        mesh (str): Mesh that needs checking
+    Returns:
+        list: List of all nodes that belong to non-deforming history
+    """
+    history_before_skin = []
+    history = cmds.ls(cmds.listHistory(mesh), l=True)
+
+    if not history:
+        return history_before_skin
+
+    for node in history[1:]: # first history is the shape itself
+        if cmds.nodeType(node) == 'skinCluster':
+            break
+
+        history_before_skin.append(node)
+
+    return history_before_skin

@@ -8,7 +8,7 @@
 import os
 import importlib
 
-import maya.cmds as cmds
+from maya import cmds, mel
 
 from wd_validator import utilities
 
@@ -63,3 +63,24 @@ def save_scene(overwrite=True):
 
         cmds.file(rename=export_name)
         cmds.file(save=True)
+
+
+def remove_pre_skin_history(scene_data):
+    """ Remove non deforming history on a mesh.
+    Args:
+        scene_data (CollectExportData): the object with the scene data alreadu initialized.
+    """
+    message = 'Applying this fix might break the rig.\nPlease make sure to double check everything before exporting and uploading the character.'
+    answer = cmds.confirmDialog(title='Warning', message=message, button=['Continue','Abort'], defaultButton='Continue', cancelButton='Abort', dismissString='Abort')
+
+    if answer == 'Continue':
+        for mesh in scene_data.meshes_with_history:
+            print('Removing non deforming history on mesh \"{}\"'.format(mesh.split('|')[-1]))
+            cmds.select(mesh)
+            mel.eval('doBakeNonDefHistory( 1, {"prePost" });')
+            cmds.select(clear=True)
+
+    else:
+        print('Aborting mesh non deforming history fix.')
+
+

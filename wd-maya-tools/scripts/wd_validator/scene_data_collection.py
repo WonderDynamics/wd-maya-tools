@@ -34,6 +34,7 @@ class CollectExportData:
         self.blendshapes = []
         self.face_geo = None
         self.face_blendshapes = []
+        self.meshes_with_history = []
 
         self.materials = []
         self.file_nodes = {}
@@ -124,3 +125,4 @@ class CollectExportData:
         self.blendshapes = []
         self.materials = []
         self.file_nodes = {}
+        self.meshes_with_history = []

@@ -60,6 +60,11 @@ def character_validation(scene_data):
             scene_data.gui_inst.update_status(val_type='rig_group_check', status=rig_grop_stat)
             scene_data.gui_inst.update_script_output(message=message)
 
+            # Checking if geometries have construction history
+            status, message = validate.history_check(scene_data)
+            scene_data.gui_inst.update_status(val_type='history_check', status=status)
+            scene_data.gui_inst.update_script_output(message=message)
+
             if rig_grop_stat == 'pass':
                 # Checking poly count
                 status, message = validate.poly_count_check(scene_data)
