@@ -124,20 +124,6 @@ def remove_namespaces():
                 cmds.namespace(removeNamespace=namespace, mergeNamespaceWithRoot=True)
 
 
-def xgen_check():
-    """Returns True if there are xgen palettes in the scene.
-    Returns:
-        bool: whether or not there are xgen palettes in the scene.
-    """
-    xg_collections = xg.palettes()
-
-    if xg_collections:
-        return True
-
-    else:
-        return False
-
-
 def get_texture_path(file_node):
     """Gets the list of paths on disk for textures in a specified node name.
     UDIM textures will be expanded to existing files matching the UDIM description.

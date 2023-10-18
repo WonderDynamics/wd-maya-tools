@@ -196,6 +196,28 @@ def rig_hierarchy_check(scene_data):
     return True
 
 
+def mesh_skinning_check(scene_data):
+    """ Check all character meshes if they have skinCluster nodes.
+    Args:
+        scene_data (CollectExportData): the object with the scene data already initialized.
+    Returns:
+        list: List of mesh names that are missing skinCluster nodes.
+    """
+    missing_skin = []
+
+    for mesh in scene_data.all_meshes:
+        mesh_history = cmds.listHistory(mesh)
+
+        for node in mesh_history:
+            if cmds.nodeType(node) == 'skinCluster':
+                break
+
+        else:
+            missing_skin.append(mesh)
+
+    return missing_skin
+
+
 def rig_check(scene_data):
     """Check if the current scene data has a rig defined. The status for this check is stored
     in the scene_data object.
@@ -231,6 +253,20 @@ def rig_check(scene_data):
 
         else:
             message.append('  > Rig and blendshapes need to be contained inside a group with the \"_BODY\" suffix.')
+
+        scene_data.validation_data['rig_check'] = status
+        return status, message
+
+    skinning_check = mesh_skinning_check(scene_data)
+
+    if skinning_check:
+        status = 'fail'
+        message = ['>>> [ERROR] Character rig check - FAIL.']
+
+        for mesh in skinning_check:
+            message.append('  > Mesh \"{}\" is not skinned.'.format(mesh.split('|')[-1]))
+
+        message.append('  > All meshes must be skinned to the rig!')
 
         scene_data.validation_data['rig_check'] = status
         return status, message
@@ -699,6 +735,37 @@ def textures_check(scene_data):
     return status, message
 
 
+def get_xgen_descriptions(scene_data):
+    """ Find all xGen descriptions that have connections to the character.
+    Args:
+        scene_data (CollectExportData): the object with the scene data already initialized.
+    Returns:
+        list: A list of all xGen descriptions that are connected to the character.
+    """
+    descriptions = cmds.ls(type='xgmPalette')
+    valid_descriptions = []
+
+    for description in descriptions:
+        patch = cmds.listRelatives(description, ad=True, type='xgmSubdPatch') or None
+
+        if not patch:
+            continue
+
+        patch_history = cmds.ls(cmds.listHistory(patch[0]), l=True)
+
+        for node in patch_history:
+            if cmds.nodeType(node) != 'mesh':
+                continue
+
+            if node not in scene_data.all_meshes:
+                continue
+
+            valid_descriptions.append(description)
+            break
+
+    return valid_descriptions
+
+
 def groom_materials_check(scene_data):
     """Goes through all xgen interactive groom nodes in the scene making sure they have the
     supported material assigned (aiStandardHair). If there are xgen setup but without their
@@ -712,53 +779,52 @@ def groom_materials_check(scene_data):
         tuple(str, str): the result of the check, first status (skip|warning|pass) the then the
             message explaining the status.
     """
-    if utilities.xgen_check():
-        ig_spline_bases = cmds.ls(type='xgmSplineBase') or None
-        messages = []
+    ig_spline_bases = cmds.ls(type='xgmSplineBase') or None
+    messages = []
 
-        if ig_spline_bases:
-            for spline_base in ig_spline_bases:
-                interactive_groom = cmds.listConnections(
-                    '{}.outSplineData'.format(spline_base), type='xgmSplineDescription'
-                )[0]
-                interactive_groom_shape = cmds.listRelatives(interactive_groom, type='xgmSplineDescription')[0]
-                interactive_groom_sg = (
-                    cmds.listConnections('{}.instObjGroups'.format(interactive_groom_shape), type='shadingEngine')
-                    or None
-                )
-                material = cmds.listConnections('{}.surfaceShader'.format(interactive_groom_sg[0])) or None
+    if ig_spline_bases:
+        for spline_base in ig_spline_bases:
+            interactive_groom = cmds.listConnections(
+                '{}.outSplineData'.format(spline_base), type='xgmSplineDescription'
+            )[0]
+            interactive_groom_shape = cmds.listRelatives(interactive_groom, type='xgmSplineDescription')[0]
+            interactive_groom_sg = (
+                cmds.listConnections('{}.instObjGroups'.format(interactive_groom_shape), type='shadingEngine')
+                or None
+            )
+            material = cmds.listConnections('{}.surfaceShader'.format(interactive_groom_sg[0])) or None
 
-                if material:
-                    material_type = cmds.objectType(material[0])
+            if material:
+                material_type = cmds.objectType(material[0])
 
-                    if material_type != 'aiStandardHair':
-                        msg = '  > Material \"{}\" is not supported. Only \"aiStandardHair\" materials are supported.'
-                        messages.append(msg.format(material[0]))
-                else:
-                    msg = '  > \"{}\" has no material assigned. Make sure that all xGen descriptions '
-                    msg += 'have \"aiStandardHair\" assigned to them."'
-                    messages.append(msg.format(interactive_groom))
-
-            if messages:
-                status = 'warning'
-                message = ['>>> [ERROR] XGen materials check - FAIL.']
-                message += messages
-                message.append('  > Make sure that all xGen descriptions have \"aiStandardHair\" assigned to them.')
-
+                if material_type != 'aiStandardHair':
+                    msg = '  > Material \"{}\" is not supported. Only \"aiStandardHair\" materials are supported.'
+                    messages.append(msg.format(material[0]))
             else:
-                status = 'pass'
-                message = '>>> XGen materials check - PASS.'
+                msg = '  > \"{}\" has no material assigned. Make sure that all xGen descriptions '
+                msg += 'have \"aiStandardHair\" assigned to them."'
+                messages.append(msg.format(interactive_groom))
+
+        if messages:
+            status = 'warning'
+            message = ['>>> [ERROR] XGen materials check - FAIL.']
+            message += messages
+            message.append('  > Make sure that all xGen descriptions have \"aiStandardHair\" assigned to them.')
 
         else:
+            status = 'pass'
+            message = '>>> XGen materials check - PASS.'
+
+    else:
+        if get_xgen_descriptions(scene_data):
             status = 'warning'
             message = [
                 '>>> No interactive grooms found - Skipping.',
                 '  > All xGen descriptions need to be converted to Interactive Grooms before exporting.',
             ]
-
-    else:
-        status = 'skip'
-        message = '>>> No xGen found in the scene - Skipping.'
+        else:
+            status = 'skip'
+            message = '>>> No xGen found on the character - Skipping.'
 
     scene_data.validation_data['xGen_check'] = status
     return status, message
