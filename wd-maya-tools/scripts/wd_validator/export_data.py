@@ -22,6 +22,24 @@ importlib.reload(utilities)
 # pylint: disable=unspecified-encoding
 
 
+def remove_xgen_palettes(undo=False):
+    """ Unresolved path in xgen palettes will crash the scene when
+    file command is called with the -list flag. This function will remove all
+    of them and then undo the change if the flag is set correctly.
+    Args:
+        undo (bool, optional): Undo the previous step. Defaults to False.
+    """
+    if not cmds.undoInfo( state=True, q=True):
+        cmds.undoInfo( state=True, infinity=True )
+
+    if not undo:
+        all_palettes = cmds.ls(type='xgmPalette')
+        cmds.delete(all_palettes)
+
+    else:
+        cmds.undo()
+
+
 def create_export_dir(scene_data):
     """Builds the export directory, stores it into the scene_data object and
     ensures the export directory exists.
@@ -31,6 +49,8 @@ def create_export_dir(scene_data):
 
     # Workaround for some os where cmds.file(q=1, sn=1) returns an empty string.
     # Using list=True and keeping the first path since this is the scene name.
+
+    remove_xgen_palettes() # If some xgen palettes have unresolved paths cmds.file will crash the scene...
     scene_path = cmds.file(query=True, l=True)[0]
     scene_root_dir = os.path.dirname(scene_path)
 
@@ -40,6 +60,7 @@ def create_export_dir(scene_data):
         os.mkdir(pack_dir)
 
     scene_data.export_dir = pack_dir
+    remove_xgen_palettes(undo=True)
 
 
 def remove_fbx_attribute(scene_data):
