@@ -61,7 +61,7 @@ def referenced_data_check(scene_data):
         message = [
             '>>> [ERROR] Checking if there is referenced data - FAIL.',
             '  > Make sure that all referenced data is imported and namespaces removed.',
-            '  > Automatic fix available. Click on the \"FIX?\" button to start.',
+            '  > Automatic fix available. Click on the gear icon  to start.',
         ]
 
     else:
@@ -257,8 +257,24 @@ def rig_check(scene_data):
         scene_data.validation_data['rig_check'] = status
         return status, message
 
-    skinning_check = mesh_skinning_check(scene_data)
+    meshes_in_rig = cmds.listRelatives(scene_data.rig_selection, ad=True, pa=True, type='mesh')
+    if meshes_in_rig:
 
+        status = 'fail'
+        message = ['>>> [ERROR] Character rig check - FAIL.',]
+
+        for mesh in meshes_in_rig:
+            message.append('  > Mesh: \"{}\" is in the rig hierarchy.'.format(cmds.listRelatives(mesh, parent=True, pa=True)[0]))
+
+        message += [
+            '  > All meshes must be placed inside the \"GEO\" group.',
+            '  > Either move the meshes to \"GEO\" group or remove them.'
+        ]
+
+        scene_data.validation_data['rig_check'] = status
+        return status, message
+
+    skinning_check = mesh_skinning_check(scene_data)
     if skinning_check:
         status = 'fail'
         message = ['>>> [ERROR] Character rig check - FAIL.']
