@@ -266,12 +266,12 @@ def get_material_meshes(material, short_name=True):
     """
     all_meshes = []
     shading_groups = cmds.listConnections(material + '.outColor')
-
     for shading_group in shading_groups:
-        sg_meshes = cmds.listConnections(shading_group + '.dagSetMembers')
-
+        sg_meshes = cmds.listConnections(shading_group + '.dagSetMembers', type='mesh')
         if sg_meshes:
-            all_meshes += sg_meshes
+            for mesh in sg_meshes:
+                if cmds.ls(mesh, long=True)[0].split('|')[1] == 'GEO': # To exclude blendshape geometries from metadata
+                    all_meshes.append(mesh)
 
     if short_name:
         all_meshes = [mesh.split('|')[-1] for mesh in all_meshes]
@@ -343,7 +343,7 @@ def get_eyes_data():
 
             else:
                 eye_data = {
-                    'bone_name': eye['bone_field_value'],
+                    'bone_name': eye['bone_field_value'].split('|')[-1],
                     'horizontal_rotation_axis': eye['horizontal_axis_menu_value'],
                     'vertical_rotation_axis': eye['vertical_axis_menu_value'],
                     'horizontal_min_max_value': [eye['horizontal_min_field_value'], eye['horizontal_max_field_value']],

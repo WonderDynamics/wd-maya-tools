@@ -28,10 +28,12 @@ importlib.reload(utilities)
 class EyeRotationsUI(object):
     """Class that creates the Eye Rotations UI and handles updates, validation and persistency of it's data."""
 
-    def __init__(self):
+    def __init__(self, scene_data):
         self.window = 'eye_rotations'
         self.title = 'Eye Bone Mapping'
         self.width = 400
+
+        self.scene_data = scene_data
 
         self.mapping_dict = {}
         self.body_bones = []
@@ -457,6 +459,18 @@ class EyeRotationsUI(object):
         Args:
             form_key (str): the name of this eye form.
         """
+        # Check if rig is mapped
+        rig_mapping = utilities.read_data('rig_mapping')
+        if not rig_mapping:
+            cmds.warning('Make sure to map all joints first before mapping eye rotations.')
+            return
+
+        # Check if hips are mapped
+        if rig_mapping['Hips'] == None:
+            cmds.warning('Make sure to map all joints first before mapping eye rotations.')
+            return
+
+        # Check selection
         selection = cmds.ls(sl=True, type='joint')
 
         if not selection:
@@ -489,6 +503,13 @@ class EyeRotationsUI(object):
             cmds.warning('Make sure to select bones that are not already mapped to the body.')
             return
 
+        # Check if joint belongs to the rig
+        all_rig_joints = [jnt.split('|')[-1] for jnt in cmds.listRelatives(self.scene_data.rig_selection, ad=True)]
+        if joint_short_name not in all_rig_joints:
+            cmds.warning('Make sure that the selected joint belongs to the rig.')
+            return
+
+        # Make sure to avoid same bone assignment
         if selection[0] in self.set_bones:
             cmds.warning('Eye bone already assigned.')
             return

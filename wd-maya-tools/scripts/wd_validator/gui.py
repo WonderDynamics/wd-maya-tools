@@ -127,7 +127,7 @@ class ValidationUI(object):
 
         cmds.setParent(self.main_column)
         cmds.separator(height=5, style='out')
-        cmds.text(label='Wonder Dynamics 2023', align='center', height=18)
+        cmds.text(label='Wonder Dynamics 2023 - {}'.format(static.ADDON_VERSION), align='center', height=18)
         cmds.separator(height=5, style='in')
 
         self.load_saved_data()
@@ -302,6 +302,9 @@ class ValidationUI(object):
         self.start_validation()
         self.enable_export()
 
+    def empty_command(self, *args):
+        pass
+
     def update_status(self, val_type, status):
         """Updates the icon, enabled state and callback for a validation button.
         The status for this validator is also stored in the validation_window's member data.
@@ -317,30 +320,34 @@ class ValidationUI(object):
             if status.lower() == 'fix':
                 enable_status = True
                 icon = 'wd_fix_warning_16px.png'
-
-                cmds.iconTextButton(status_button, e=True, command=partial(self.fix_button, val_type))
+                command = partial(self.fix_button, val_type)
 
             elif status.lower() == 'pass':
                 icon = 'wd_check_16px.png'
+                command = self.empty_command
 
             elif status.lower() == 'fail':
                 icon = 'wd_failed_16px.png'
+                command = self.empty_command
 
             elif status.lower() == 'skip':
                 icon = 'wd_skip_16px.png'
+                command = self.empty_command
 
             elif status.lower() == 'warning':
                 icon = 'wd_warning_16px.png'
+                command = self.empty_command
 
             elif status.lower() == 'warning_fix':
+                enable_status = True
                 icon = 'wd_fix_warning_16px.png'
-
-                cmds.iconTextButton(status_button, e=True, command=partial(self.fix_button, val_type))
+                command = partial(self.fix_button, val_type)
 
             else:
                 icon = 'wd_skip_16px.png'
+                command = self.empty_command
 
-            cmds.iconTextButton(status_button, e=True, image=icon, enable=enable_status)
+            cmds.iconTextButton(status_button, e=True, image=icon, enable=enable_status, command=command)
 
             self.validation_windows[val_type]['status'] = status
 
@@ -549,7 +556,7 @@ class ValidationUI(object):
 
     def open_eye_rotations_window(self, *args):
         """Initializes and opens the eye rotation window."""
-        self.eye_rotations_ui = eye_rotations_gui.EyeRotationsUI()
+        self.eye_rotations_ui = eye_rotations_gui.EyeRotationsUI(scene_data=self.scene_data)
         self.eye_rotations_ui.open_window()
 
     def open_script_terminal(self, *args):

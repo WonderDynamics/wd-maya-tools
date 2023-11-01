@@ -70,9 +70,10 @@ def remove_pre_skin_history(scene_data):
     Args:
         scene_data (CollectExportData): the object with the scene data alreadu initialized.
     """
-    message = 'Applying this fix might break the character.\nPlease make sure to double check everything before exporting and uploading the character.'
-    message = 'Not supported history nodes detected!\nYou can apply a  bypass fix for them or keep them and hope for the best.\nIf you decide to apply a fix, please check if there are any unwanted side effects afterwards.'
-    answer = cmds.confirmDialog(title='Warning', message=message, button=['Apply Bypass Fix','Keep Nodes'], defaultButton='Apply Bypass Fix', cancelButton='Keep Nodes', dismissString='Keep Nodes')
+    message = 'Not supported history nodes detected!\nYou can apply a bypass fix for them.'
+    message += '\nThis might remove blendshapes if they are not in correct deformation order!'
+    message += '\nIf you decide to apply a fix, please check if there are any unwanted side effects afterwards.'
+    answer = cmds.confirmDialog(title='Warning', message=message, button=['Apply Bypass Fix','Abort'], defaultButton='Apply Bypass Fix', cancelButton='Abort', dismissString='Abort')
 
     if answer == 'Apply Bypass Fix':
         for mesh in scene_data.meshes_with_history:
