@@ -92,6 +92,11 @@ def character_validation(scene_data):
                 scene_data.gui_inst.update_script_output(message=message)
 
                 if mat_status == 'pass':
+                    # Checking if naming of objects isn't too long
+                    status, message = validate.naming_check(scene_data)
+                    scene_data.gui_inst.update_status(val_type='naming_check', status=status)
+                    scene_data.gui_inst.update_script_output(message=message)
+
                     # Checking material incoming connections
                     status, message = validate.material_connections_check(scene_data)
                     scene_data.gui_inst.update_status(val_type='material_connections_check', status=status)

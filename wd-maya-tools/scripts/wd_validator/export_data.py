@@ -234,7 +234,7 @@ def export_groom(scene_data):
             )[0]
             material = cmds.listConnections('{}.surfaceShader'.format(interactive_groom_sg))[0]
 
-            new_name = '{mesh}_groom{id}_splineDescription'.format(id=str(i), mesh=scalp_geo)
+            new_name = '{mesh}_groom{id}_sd'.format(id=str(i), mesh=scalp_geo)
 
             if material not in all_materials:
                 all_materials[material] = [new_name]

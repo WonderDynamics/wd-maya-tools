@@ -867,8 +867,8 @@ def history_check(scene_data):
                     break
 
     if all_messages:
-        status = 'warning_fix'
-        message = ['>>> [WARNING] Construction history check - FAIL']
+        status = 'fix'
+        message = ['>>> [ERROR] Construction history check - FAIL']
         message += all_messages
         message.append('  > Automatic fix is available.')
 
@@ -877,4 +877,41 @@ def history_check(scene_data):
         message = '>>> Construction history check - PASS'
 
     scene_data.validation_data['history_check'] = status
+    return status, message
+
+
+def naming_check(scene_data):
+    """ Checks names of all objects in the scene that will be exported.
+        All names longer than 50 characters will be flagged and export blocked.
+    Args:
+        scene_data (CollectExportData): the object with the scene data already initialized.
+    Returns:
+        tuple(str, str): the result of the check, first status (fail|pass) the then the
+            message explaining the status.
+    """
+    all_messages = []
+
+    object_list = scene_data.geo_group + scene_data.all_meshes + scene_data.blendshapes + scene_data.materials
+    object_list.append(scene_data.rig_group)
+    object_list.append(scene_data.rig_selection)
+    object_list += cmds.listRelatives(scene_data.rig_selection, ad=True)
+
+    for obj in object_list:
+        short_name = obj.split('|')[-1]
+
+        if len(short_name) > static.MAX_NAME_LENGHT:
+            all_messages.append('  > Object \"{}\" has a name that\'s longer than 50 characters.'.format(short_name))
+
+    if all_messages:
+        status = 'fail'
+        message = ['>>> [ERROR] Naming check - FAIL']
+        message += all_messages
+        message.append('  > Removing namespaces, if they are present, can help solve this problem.')
+
+
+    else:
+        status = 'pass'
+        message = '>>> Naming check - PASS'
+
+    scene_data.validation_data['naming_check'] = status
     return status, message

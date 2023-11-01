@@ -66,6 +66,8 @@ accepting_textures = [
     'normalCamera',
 ]
 
+ADDON_VERSION = '1.0.0'
+MAX_NAME_LENGHT = 50
 
 GITBOOK_ROOT = 'https://help.wonderdynamics.com'
 GITBOOK_CHAR_PREP = GITBOOK_ROOT + '/character-creation/maya-add-on'
@@ -129,6 +131,10 @@ validation_windows_data = {
         'message': 'Checking materials type...',
         'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/materials-type-validation',
     },
+        'naming_check': {
+        'message': 'Checking naming...',
+        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/naming-validation',
+    },
     'material_connections_check': {
         'message': 'Checking material shading graph...',
         'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/materials-shading-graph-validation',
@@ -167,7 +173,7 @@ eye_values = {
 
 metadata_template = {
     'software': 'maya',
-    'version': '1.0.0',
+    'version': ADDON_VERSION,
     'materials': [],
     'eyes_rig': [],
     'body': {

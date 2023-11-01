@@ -42,8 +42,7 @@ class CollectExportData:
 
         self.validation_data = {}
         self.export_dir = None
-        metadata_template = copy.deepcopy(static.metadata_template)
-        self.metadata_json = metadata_template
+        self.metadata_json = copy.deepcopy(static.metadata_template)
 
     def collect_data(self):
         """Collects data from the scene, like geo group, meshes inside group,
@@ -126,3 +125,4 @@ class CollectExportData:
         self.materials = []
         self.file_nodes = {}
         self.meshes_with_history = []
+        self.metadata_json = copy.deepcopy(static.metadata_template)
