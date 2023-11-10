@@ -265,7 +265,7 @@ def get_material_meshes(material, short_name=True):
 
     """
     all_meshes = []
-    shading_groups = cmds.listConnections(material + '.outColor')
+    shading_groups = cmds.listConnections(material + '.outColor', type='shadingEngine')
     for shading_group in shading_groups:
         sg_meshes = cmds.listConnections(shading_group + '.dagSetMembers', type='mesh')
         if sg_meshes:
