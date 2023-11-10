@@ -66,7 +66,7 @@ accepting_textures = [
     'normalCamera',
 ]
 
-ADDON_VERSION = '1.0.0'
+ADDON_VERSION = '1.0.1'
 METADATA_VERSION = '1.0.0'
 MAX_NAME_LENGHT = 50
 
