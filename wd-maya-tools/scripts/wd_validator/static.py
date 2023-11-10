@@ -66,7 +66,8 @@ accepting_textures = [
     'normalCamera',
 ]
 
-ADDON_VERSION = '1.0.0'
+ADDON_VERSION = '1.0.1'
+METADATA_VERSION = '1.0.0'
 MAX_NAME_LENGHT = 50
 
 GITBOOK_ROOT = 'https://help.wonderdynamics.com'
@@ -173,7 +174,7 @@ eye_values = {
 
 metadata_template = {
     'software': 'maya',
-    'version': ADDON_VERSION,
+    'version': METADATA_VERSION,
     'materials': [],
     'eyes_rig': [],
     'body': {
