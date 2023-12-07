@@ -393,3 +393,22 @@ def get_pre_skin_history(mesh):
         history_before_skin.append(node)
 
     return history_before_skin
+
+def get_spline_description(spline_base):
+    """ Goes trough the network of nodes until it finds the xgmSplineDescription node in the graph.
+    Starting point is xgmSplineBase node set in the spline_base variable.
+    Args:
+        spline_base (str): Name of the spline base to be use as a starting point.
+    Returns:
+        str or None: Name of the spline description if found or None.
+    """
+    node = cmds.listConnections('{}.outSplineData'.format(spline_base), shapes=True)
+
+    while True:
+        if not node:
+            return None
+
+        if cmds.nodeType(node[0]) == 'xgmSplineDescription':
+            return node[0]
+
+        node = cmds.listConnections('{}.outSplineData'.format(node[0]), shapes=True)

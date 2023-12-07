@@ -225,10 +225,8 @@ def export_groom(scene_data):
         scalp_geo = cmds.listConnections(spline_base + '.boundMesh')[0]
 
         if scalp_geo:
-            interactive_groom = cmds.listConnections(
-                '{}.outSplineData'.format(spline_base), type='xgmSplineDescription'
-            )[0]
-            interactive_groom_shape = cmds.listRelatives(interactive_groom, type='xgmSplineDescription')[0]
+            interactive_groom_shape = utilities.get_spline_description(spline_base)
+            interactive_groom = cmds.listRelatives(interactive_groom_shape, parent=True)[0]
             interactive_groom_sg = cmds.listConnections(
                 '{}.instObjGroups'.format(interactive_groom_shape), type='shadingEngine'
             )[0]

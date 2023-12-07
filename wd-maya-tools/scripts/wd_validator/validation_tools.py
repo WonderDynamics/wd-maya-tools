@@ -781,25 +781,6 @@ def get_xgen_descriptions(scene_data):
 
     return valid_descriptions
 
-def get_spline_description(spline_base):
-    """ Goes trough the network of nodes until it finds the xgmSplineDescription node in the graph.
-    Starting point is xgmSplineBase node set in the spline_base variable.
-    Args:
-        spline_base (str): Name of the spline base to be use as a starting point.
-    Returns:
-        str or None: Name of the spline description if found or None.
-    """
-    node = cmds.listConnections('{}.outSplineData'.format(spline_base), shapes=True)
-
-    while True:
-        if not node:
-            return None
-
-        if cmds.nodeType(node[0]) == 'xgmSplineDescription':
-            return node[0]
-
-        node = cmds.listConnections('{}.outSplineData'.format(node[0]), shapes=True)
-
 
 def groom_materials_check(scene_data):
     """Goes through all xgen interactive groom nodes in the scene making sure they have the
@@ -819,7 +800,7 @@ def groom_materials_check(scene_data):
 
     if ig_spline_bases:
         for spline_base in ig_spline_bases:
-            interactive_groom_shape = get_spline_description(spline_base)
+            interactive_groom_shape = utilities.get_spline_description(spline_base)
             interactive_groom = cmds.listRelatives(interactive_groom_shape, parent=True)[0]
             interactive_groom_sg = (
                 cmds.listConnections('{}.instObjGroups'.format(interactive_groom_shape), type='shadingEngine')
