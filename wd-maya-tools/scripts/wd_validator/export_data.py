@@ -161,7 +161,7 @@ def export_textures(scene_data):
 
         material_type = cmds.nodeType(material)
 
-        if material_type == 'aiStandardSurface':
+        if material_type in ['aiStandardSurface', 'standardSurface']:
             type_ = 'surface'
 
         else:
