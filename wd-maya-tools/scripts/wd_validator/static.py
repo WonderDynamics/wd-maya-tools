@@ -66,8 +66,8 @@ accepting_textures = [
     'normalCamera',
 ]
 
-ADDON_VERSION = '1.0.3'
-METADATA_VERSION = '1.0.0'
+ADDON_VERSION = '1.0.4'
+METADATA_VERSION = '1.0.1'
 MAX_NAME_LENGHT = 50
 
 GITBOOK_ROOT = 'https://help.wonderdynamics.com'
