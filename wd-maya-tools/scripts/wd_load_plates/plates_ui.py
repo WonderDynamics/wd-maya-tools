@@ -8,6 +8,7 @@ plates_ui.add_all_plates_ui()
 """
 import os
 import traceback
+import webbrowser
 
 from maya import cmds
 
@@ -29,14 +30,27 @@ def main_ui() -> None:
         'Running this tool multiple times will create multiple copies of the same image plane.\n'
     )
 
-    buttons = ['Cancel', 'Add Plates to Cameras']
+    buttons = ['Cancel', 'More Information', 'Add Plates to Cameras']
     answer = cmds.confirmDialog(message=message, title='Wonder Studio Load Plates Utility', button=buttons)
 
-    if answer != buttons[1]:
+    if answer == buttons[0]:
         print('User cancelled process for adding plates to cameras.')
         return
 
-    add_all_plates_ui()
+    if answer == buttons[1]:
+        browse_for_doc_url()
+        return
+
+    if answer == buttons[2]:
+        add_all_plates_ui()
+        return
+
+
+def browse_for_doc_url() -> None:
+    """Opens the documentation web page in the default web browser."""
+    url = ('https://help.wonderdynamics.com/'
+    'working-with-wonder-studio/export-elements/export-scenes/maya-scene#camera-plate-addon')
+    webbrowser.open(url)
 
 
 def add_all_plates_ui() -> None:
@@ -71,7 +85,9 @@ def add_all_plates_ui() -> None:
         return
 
     try:
+        cmds.waitCursor( state=True )
         result = plates_utils.add_all_plates(folder, plates_root)
+        cmds.waitCursor( state=False )
         if result:
             msg = f'Success!\n\nAdded the following image planes ({len(result)}):\n\n  - ' + '\n  - '.join(result)
             msg += '\n\nYou will find the image planes next to each camera in the outliner.'

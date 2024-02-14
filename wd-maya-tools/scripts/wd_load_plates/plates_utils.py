@@ -5,7 +5,8 @@ import subprocess
 import re
 import glob
 import shutil
-from typing import Dict, List, Any, Tuple
+import time
+from typing import Dict, List, Any, Tuple, Optional
 
 from maya import cmds, mel
 
@@ -194,7 +195,7 @@ def add_image_plane(camera: str, first_frame: str) -> str:
     return ip_trf
 
 
-def add_all_plates(folder: str, dst_folder: str) -> List[str]:
+def add_all_plates(folder: str, dst_folder: str, show_progress_bar:bool=True) -> List[str]:
     """Adds  plates to all cameras on sequencer
     Args:
         folder (str): Full path to the folder holding the clean plate frames
@@ -206,17 +207,31 @@ def add_all_plates(folder: str, dst_folder: str) -> List[str]:
     """
     image_planes = []
 
+
     cut_data_list = get_cut_data_from_sequencer()
     if not cut_data_list:
         msg = 'Could not find any sequencer shot. Are you sure you are in a WS Maya Scene?'
         print(msg)
         return image_planes
 
+    if show_progress_bar:
+        step = 0
+        start_bar(3)
+        step += 1
+        set_bar(step, 'Converting images to Maya friendly naming (may take a while) ...')
+
     converted_plates = convert_sequence_to_maya_compatible_wait(folder, dst_folder)
     if not converted_plates:
         msg = 'WARNING: Could not find any converted clean plate frames!'
         print(msg)
+        if show_progress_bar:
+            end_bar()
         return image_planes
+
+    if show_progress_bar:
+        step += 1
+        set_bar(step, 'Assigning image planes...')
+        time.sleep(.7)
 
     for data in cut_data_list:
         msg = f'Adding plate for cut {data["name"]} and camera {data["camera"]}'
@@ -224,4 +239,40 @@ def add_all_plates(folder: str, dst_folder: str) -> List[str]:
         image_plane = add_image_plane(data['camera'], converted_plates[0])
         image_planes.append(image_plane)
 
+    if show_progress_bar:
+        step += 1
+        set_bar(step, 'Finishing...')
+        time.sleep(.7)
+        end_bar()
+
     return image_planes
+
+
+def start_bar(count:int) -> None:
+    """Starts the progress bar in Maya UI bottom left.
+
+    Args:
+        count (int): Max steps to progress.
+    """
+    bar_name = mel.eval('$tmp = $gMainProgressBar')
+    cmds.progressBar(bar_name, e=True, beginProgress=True, isInterruptable=False,
+                    status='Adding Plates...', max=count)
+
+
+def set_bar(step:int, msg:Optional[str]=None) -> None:
+    """Moves the progress bar to step and optionally changes the message.
+
+    Args:
+        step (int): The current step.
+        msg (str, optional): The message to change. Defaults to not changing the message.
+    """
+    bar_name = mel.eval('$tmp = $gMainProgressBar')
+    cmds.progressBar(bar_name, edit=True, step=step)
+    if msg:
+        cmds.progressBar(bar_name, edit=True, status=msg)
+
+
+def end_bar() -> None:
+    """Ends and closes the progress bar in Maya UI bottom left."""
+    bar_name = mel.eval('$tmp = $gMainProgressBar')
+    cmds.progressBar(bar_name, edit=True, endProgress=True)
