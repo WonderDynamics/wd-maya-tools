@@ -6,6 +6,7 @@ from wd_load_plates import plates_ui
 plates_ui.add_all_plates_ui()
 
 """
+
 import os
 import traceback
 import webbrowser
@@ -48,8 +49,10 @@ def main_ui() -> None:
 
 def browse_for_doc_url() -> None:
     """Opens the documentation web page in the default web browser."""
-    url = ('https://help.wonderdynamics.com/'
-    'working-with-wonder-studio/export-elements/export-scenes/maya-scene#camera-plate-addon')
+    url = (
+        'https://help.wonderdynamics.com/'
+        'working-with-wonder-studio/export-elements/export-scenes/maya-scene#camera-plate-addon'
+    )
     webbrowser.open(url)
 
 
@@ -85,9 +88,9 @@ def add_all_plates_ui() -> None:
         return
 
     try:
-        cmds.waitCursor( state=True )
+        cmds.waitCursor(state=True)
         result = plates_utils.add_all_plates(folder, plates_root)
-        cmds.waitCursor( state=False )
+        cmds.waitCursor(state=False)
         if result:
             msg = f'Success!\n\nAdded the following image planes ({len(result)}):\n\n  - ' + '\n  - '.join(result)
             msg += '\n\nYou will find the image planes next to each camera in the outliner.'
@@ -95,6 +98,7 @@ def add_all_plates_ui() -> None:
             msg = 'Could not add any image plane! Please check script editor for more information.'
 
     except Exception as exc:  # pylint: disable=broad-exception-caught
+        cmds.waitCursor(state=False)
         traceback.print_exc()
         msg = f'Could not add plates. Please check script editor for more information. Error was {exc}'
 

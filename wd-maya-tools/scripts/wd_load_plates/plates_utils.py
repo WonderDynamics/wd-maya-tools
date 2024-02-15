@@ -1,4 +1,5 @@
 """Module with utilities to add the plates to maya cameras in the Wonder Studio Maya scene."""
+
 import os
 import platform
 import subprocess
@@ -180,7 +181,7 @@ def add_image_plane(camera: str, first_frame: str) -> str:
     """
     image_plane = cmds.imagePlane(lookThrough=camera, showInAllViews=False)
 
-    mel.eval(f'cameraImagePlaneUpdate "{camera}" "{image_plane[1]}";')
+    safe_camera_image_plane_update(image_plane[1], camera)
 
     cmds.setAttr(image_plane[1] + '.imageName', first_frame, type='string')
     cmds.setAttr(image_plane[1] + '.useFrameExtension', True)
@@ -195,7 +196,28 @@ def add_image_plane(camera: str, first_frame: str) -> str:
     return ip_trf
 
 
-def add_all_plates(folder: str, dst_folder: str, show_progress_bar:bool=True) -> List[str]:
+def safe_camera_image_plane_update(image_plane_shape: str, camera: str) -> None:
+    """Properly connects the image plane to the camera. This is a fixed version of
+    cameraImagePlaneUpdate mel script that does not fail if camera name is duplicated.
+
+    Args:
+        image_plane_shape (str): The image plane.
+        camera (str): Full path to the camera.
+    """
+
+    cmds.connectAttr(image_plane_shape + ".message", camera + ".imagePlane", nextAvailable=True)
+    cmds.setAttr(image_plane_shape + ".lockedToCamera", not cmds.getAttr(camera + ".orthographic"))
+    cmds.setAttr(image_plane_shape + ".sizeX", cmds.getAttr(camera + ".horizontalFilmAperture"))
+    cmds.setAttr(image_plane_shape + ".sizeY", cmds.getAttr(camera + ".verticalFilmAperture"))
+    cmds.setAttr(image_plane_shape + ".width", cmds.getAttr(camera + ".orthographicWidth"))
+    cmds.setAttr(image_plane_shape + ".height", cmds.getAttr(camera + ".orthographicWidth"))
+    cmds.setAttr(image_plane_shape + ".imageCenter", *cmds.camera(camera, query=1, worldCenterOfInterest=True))
+
+    for item in cmds.listRelatives(camera, parent=True, path=True):  # this is the part that fails in mel script
+        cmds.showHidden(item, below=True)
+
+
+def add_all_plates(folder: str, dst_folder: str, show_progress_bar: bool = True) -> List[str]:
     """Adds  plates to all cameras on sequencer
     Args:
         folder (str): Full path to the folder holding the clean plate frames
@@ -206,7 +228,6 @@ def add_all_plates(folder: str, dst_folder: str, show_progress_bar:bool=True) ->
         List[str]: The list of image planes created.
     """
     image_planes = []
-
 
     cut_data_list = get_cut_data_from_sequencer()
     if not cut_data_list:
@@ -231,7 +252,7 @@ def add_all_plates(folder: str, dst_folder: str, show_progress_bar:bool=True) ->
     if show_progress_bar:
         step += 1
         set_bar(step, 'Assigning image planes...')
-        time.sleep(.7)
+        time.sleep(0.7)
 
     for data in cut_data_list:
         msg = f'Adding plate for cut {data["name"]} and camera {data["camera"]}'
@@ -242,24 +263,23 @@ def add_all_plates(folder: str, dst_folder: str, show_progress_bar:bool=True) ->
     if show_progress_bar:
         step += 1
         set_bar(step, 'Finishing...')
-        time.sleep(.7)
+        time.sleep(0.7)
         end_bar()
 
     return image_planes
 
 
-def start_bar(count:int) -> None:
+def start_bar(count: int) -> None:
     """Starts the progress bar in Maya UI bottom left.
 
     Args:
         count (int): Max steps to progress.
     """
     bar_name = mel.eval('$tmp = $gMainProgressBar')
-    cmds.progressBar(bar_name, e=True, beginProgress=True, isInterruptable=False,
-                    status='Adding Plates...', max=count)
+    cmds.progressBar(bar_name, e=True, beginProgress=True, isInterruptable=False, status='Adding Plates...', max=count)
 
 
-def set_bar(step:int, msg:Optional[str]=None) -> None:
+def set_bar(step: int, msg: Optional[str] = None) -> None:
     """Moves the progress bar to step and optionally changes the message.
 
     Args:
