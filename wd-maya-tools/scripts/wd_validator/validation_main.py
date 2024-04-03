@@ -3,21 +3,35 @@
 # This source code is licensed under the GNU GPLv3
 # found in the LICENSE file in the root directory of this source tree.
 
-"""Module that holds the functions for executing the validation process."""
+"""Module that holds the functions for executing the validation process.
+
+To add a validation:
+ - Define it static.validation_windows_data. The key you define there will
+    be the identifier all through the process
+ - Define a check in validation tools module
+    See examples there
+ - add the check in the flow of character_validation function
+ - if fixes needed:
+    - remember to flag it in the check with 'fix' or 'warning_fix'
+    - define fix function in validation_fixes module
+    - add it to the flow in gui.ValidationUI.fix_button
+
+"""
 
 import importlib
 
-from wd_validator import validation_tools as validate, utilities
+from wd_validator import validation_tools as validate, utilities, static
 
 importlib.reload(validate)
 importlib.reload(utilities)
+importlib.reload(static)
 
 
 def scene_validation(scene_data):
     """Runs the scene validation process and returns whether or not it succeeded. This
     validation runs before the character validation and is independent of it.
     Args:
-        scene_data (CollectExportData): the object with the scene data alreadu initialized.
+        scene_data (CollectExportData): the object with the scene data already initialized.
     Returns:
         bool: whether or not the 'scene' validation passed.
     """
@@ -37,11 +51,13 @@ def scene_validation(scene_data):
         return False
 
 
-def character_validation(scene_data):
+def character_validation(scene_data, mode=static.VALIDATION_NORMAL):
     """Runs the character (full) validation process and if any of the validation fails it
     will abort the process and reflect this in the main UI.
     Args:
         scene_data (CollectExportData): the object with the scene data already initialized.
+        mode (str): The mode the validation is running on. It can be either static.VALIDATION_NORMAL
+            or static.VALIDATION_USD
     """
     # Checking if "GEO" group exists
     geo_status, message = validate.geo_group_check(scene_data)
@@ -50,11 +66,11 @@ def character_validation(scene_data):
 
     if geo_status == 'pass':
         # Checking the rig
-        rig_status, message = validate.rig_check(scene_data)
+        rig_status, message = validate.rig_check(scene_data, mode=mode)
         scene_data.gui_inst.update_status(val_type='rig_check', status=rig_status)
         scene_data.gui_inst.update_script_output(message=message)
 
-        if rig_status == 'pass':
+        if rig_status in ['pass', 'warning_fix']:
             # Checking if rig group exists and is named correctly
             rig_grop_stat, message = validate.rig_group_check(scene_data)
             scene_data.gui_inst.update_status(val_type='rig_group_check', status=rig_grop_stat)
@@ -64,6 +80,11 @@ def character_validation(scene_data):
             status, message = validate.history_check(scene_data)
             scene_data.gui_inst.update_status(val_type='history_check', status=status)
             scene_data.gui_inst.update_script_output(message=message)
+
+            # Checking if all grp is ok
+            all_status, all_message = validate.all_group_check(scene_data, mode=mode)
+            scene_data.gui_inst.update_status(val_type='all_group_check', status=all_status)
+            scene_data.gui_inst.update_script_output(message=all_message)
 
             if rig_grop_stat == 'pass':
                 # Checking poly count
@@ -129,10 +150,12 @@ def character_validation(scene_data):
         utilities.abort_validation(scene_data)
 
 
-def validation_run(scene_data):
+def validation_run(scene_data, mode=static.VALIDATION_NORMAL):
     """Runs the full validation process.
     Args:
         scene_data (CollectExportData): the object with the scene data already initialized.
+        mode (str): The mode the validation is running on. It can be either static.VALIDATION_NORMAL
+            or static.VALIDATION_USD
     """
     scene_data.gui_inst.update_script_output(
         message='============================================================================='
@@ -140,11 +163,15 @@ def validation_run(scene_data):
     scene_data.gui_inst.update_script_output(message='>>> Starting scene and character validation...')
 
     utilities.reset_validation_data(scene_data)
+
+
     scene_validation_status = scene_validation(scene_data)
 
     if scene_validation_status:
         scene_data.collect_data()
-        character_validation(scene_data)
+        # since metadata was reset, we need to add this value coming from the ui
+        scene_data.metadata_json['usd'] = mode == static.VALIDATION_USD
+        character_validation(scene_data, mode=mode)
 
     else:
         utilities.abort_validation(scene_data)

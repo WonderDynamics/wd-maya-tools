@@ -86,27 +86,100 @@ def geo_group_check(scene_data):
     # keeping existing group
     valid_geo_groups = [grp for grp in geo_group if grp and cmds.objExists(grp)]
 
-    if valid_geo_groups:
-        group_contents = cmds.listRelatives(valid_geo_groups, ad=True) or None
-
-        if group_contents:
-            status = 'pass'
-            message = '>>> Checking if the \"GEO\" group exists - PASS.'
-
-        else:
-            status = 'fail'
-            message = [
-                '>>> [ERROR] The \"GEO\" group is empty - FAIL.',
-                '  > Make sure that all character geometries are inside the \"GEO\" group.',
-            ]
-
-    else:
+    if not valid_geo_groups:
         status = 'fail'
         message = [
             '>>> [ERROR] Checking if the \"GEO\" group exists - FAIL.',
             '  > All geometries must be contained within the \"GEO\" group.',
         ]
 
+        scene_data.validation_data['geo_check'] = status
+        return status, message
+
+    # check for multiple geo groups
+    if len(valid_geo_groups) > 1:
+        groups_str = ', '.join(valid_geo_groups)
+        status = 'fail'
+        message = [
+            '>>> [ERROR] Checking if there are multiple \"GEO\" groups - FAIL.',
+            '  > All geometries must be contained in a single \"GEO\" group.',
+            '  > Found {} GEO groups: {}'.format(len(valid_geo_groups), groups_str),
+        ]
+        scene_data.validation_data['geo_check'] = status
+        return status, message
+
+    # check group does not have any transformation
+    identity_matrix = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    local_matrix = cmds.xform(valid_geo_groups[0], q=1, m=1, os=1)
+    if local_matrix != identity_matrix:
+        status = 'fail'
+        message = [
+            '>>> [ERROR] The \"GEO\" group is transformed (has translate, rotate or scale values) - FAIL.',
+            '  > Make sure that the \"GEO\" group transformation values are set to zero for translation ',
+            '  > and rotation and 1 for scale.',
+        ]
+
+        scene_data.validation_data['geo_check'] = status
+        return status, message
+
+    world_matrix = cmds.xform(valid_geo_groups[0], q=1, m=1, ws=1)
+    if world_matrix != identity_matrix:
+        status = 'fail'
+        message = [
+            '>>> [ERROR] The \"GEO\" group parent is transformed (has translate, rotate or scale values) - FAIL.',
+            '  > Make sure that the \"GEO\" group parent transformation values are set to zero for translation ',
+            '  > and rotation and 1 for scale.',
+        ]
+
+        scene_data.validation_data['geo_check'] = status
+        return status, message
+
+    # check geometries transforms TODO:
+    meshes = cmds.listRelatives(valid_geo_groups, allDescendents=True, path=True, type='mesh') or []
+    mesh_trfs = list(set(cmds.listRelatives(meshes, parent=True, path=True) or []))
+    transformed_meshes = [mt for mt in mesh_trfs if  cmds.xform(mt, query=1, matrix=1, objectSpace=1) != identity_matrix]
+    if transformed_meshes:
+        status = 'fail'
+        geo_list = '  >   - ' + '\n  >   - '.join(transformed_meshes)
+        message = [
+            '>>> [ERROR] There are geometries that are transformed (have translate, rotate or scale values) - FAIL.',
+            '  > Make sure that the geos transformation values are set to zero for translation ',
+            '  > and rotation and 1 for scale. This might require removing the skin, freezing transformation and re-skinning.',
+            '  > Transformed geos are:',
+            geo_list
+        ]
+
+        scene_data.validation_data['geo_check'] = status
+        return status, message
+
+    # check no animation
+    animation_curves_found = utilities.get_animation_curves_connected_to_group(*valid_geo_groups)
+    if animation_curves_found:
+        status = 'fix'
+        message = [
+            '>>> [ERROR] The GEO group or its geometries are animated - FAIL.',
+            '  > There are some animation curves connected to the GEO group or children (or their history).',
+            '  > Please remove them because they may introduce differences between what you see now, and',
+            '  > what will be exported in the FBX file.',
+            ]
+
+        scene_data.validation_data['geo_check'] = status
+        return status, message
+
+    # check group content
+    group_contents = cmds.listRelatives(valid_geo_groups, ad=True) or None
+    if not group_contents:
+        status = 'fail'
+        message = [
+            '>>> [ERROR] The \"GEO\" group is empty - FAIL.',
+            '  > Make sure that all character geometries are inside the \"GEO\" group.',
+        ]
+
+        scene_data.validation_data['geo_check'] = status
+        return status, message
+
+    status = 'pass'
+    message = '>>> Checking if the \"GEO\" group exists - PASS.'
     scene_data.validation_data['geo_check'] = status
     return status, message
 
@@ -122,10 +195,7 @@ def rig_group_check(scene_data):
     """
     rig_group = scene_data.rig_group
 
-    if rig_group:
-        status = 'pass'
-        message = '>>> Rig group suffix check - PASS.'
-    else:
+    if not rig_group:
         status = 'fail'
         message = [
             '>>> [ERROR] Rig group suffix check - FAIL.',
@@ -134,9 +204,134 @@ def rig_group_check(scene_data):
             '  > Rig group name example: \"character_BODY\".',
         ]
 
+        scene_data.validation_data['rig_group_check'] = status
+        return status, message
+
+    # check group transformation is the identity matrix
+    identity_matrix = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    local_matrix = cmds.xform(rig_group, q=1, m=1, os=1)
+    if local_matrix != identity_matrix:
+        status = 'fail'
+        message = ['>>> [ERROR] Rig group suffix check - FAIL.',
+            '  > The "{}" group is transformed (has translate, rotate or scale values)'.format(scene_data.rig_group),
+            '  > Make sure that the group transformation values are set to zero for translation ',
+            '  and rotation and 1 for scale.',
+            ]    
+
+        scene_data.validation_data['rig_group_check'] = status
+        return status, message
+
+    # check group parent does not have any transformation
+    world_matrix = cmds.xform(rig_group, q=1, m=1, ws=1)
+    if world_matrix != identity_matrix:
+        status = 'fail'
+        message = ['>>> [ERROR] Rig group suffix check - FAIL.',
+            '  > The "{}" parents are transformed (has translate, rotate or scale values)'.format(scene_data.rig_group),
+            '  > Make sure that the parent groups transformation values are set to zero for translation ',
+            '  and rotation and 1 for scale.',
+            ]
+
+        scene_data.validation_data['rig_group_check'] = status
+        return status, message
+
+    status = 'pass'
+    message = '>>> Rig group suffix check - PASS.'
+
     scene_data.validation_data['rig_group_check'] = status
     return status, message
 
+
+def all_group_check(scene_data, mode=static.VALIDATION_NORMAL):
+    """Check if there is an all group, check the hierarchy depth and propose a name.
+    Args:
+        scene_data (CollectExportData): the object with the scene data already initialized.
+        mode (str): The mode the validation is running on. It can be either static.VALIDATION_NORMAL
+            or static.VALIDATION_USD
+    Returns:
+        tuple(str, str): the result of the check, first status (fail|pass) the then the
+            message explaining the status.
+    """
+    if mode == static.VALIDATION_NORMAL:
+        status = 'skip'
+        message = [
+            '>>> All group Only checked on USD validation - SKIP',
+         ]
+        scene_data.validation_data['all_group_check'] = status
+        return status, message
+
+    # check scene_data.rig_group scene_data.geo_group ar parented under the same thing
+    body_parent = cmds.listRelatives(scene_data.rig_group, p=1, pa=1)
+    geo_parent = cmds.listRelatives(scene_data.geo_group, p=1, pa=1)
+    if body_parent != geo_parent:
+        status = 'fix'
+        message = [
+            '>>> [ERROR] Optional all group - FAIL.',
+            '  > You can either parent both _BODY and GEO group to a single group,',
+            '  > or have them both in the scene root, but you cannot have them in a'
+            '  > different hierarchy.',
+            '  > Parent for GEO is: {}, and parent for _BODY is: {}.'.format(geo_parent, body_parent),
+        ]
+        scene_data.validation_data['all_group_check'] = status
+        return status, message
+
+    if not geo_parent:
+        status = 'warning_fix'
+        message = [
+            '>>> [WARNING] Optional all group - Warning.',
+            '  > You can add a group called "all" to hold the _BODY and GEO groups, this can be',
+            '  > very useful if you later on want to use this character maya scene in the Wonder',
+            '  > Studio Maya Scene.',
+        ]
+        scene_data.validation_data['all_group_check'] = status
+        return status, message
+
+    # check there is not more than a group scene_data.rig_group scene_data.geo_group
+    geo_parent_parent = cmds.listRelatives(geo_parent, p=1, pa=1)
+    if geo_parent_parent:
+        paths = ', '.join(cmds.ls(geo_parent_parent, l=1)[0].split('|')[1:])
+        status = 'fix'
+        message = [
+            '>>> [ERROR] Optional all group - FAIL.',
+            '  > You can add only one group on top of GEO and _BODY groups.',
+            '  > This group(s) should be removed: {}'.format(paths),
+        ]
+        scene_data.validation_data['all_group_check'] = status
+        return status, message
+
+    # check group transformation is the identity matrix
+    identity_matrix = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    local_matrix = cmds.xform(geo_parent, q=1, m=1, os=1)
+    if local_matrix != identity_matrix:
+        status = 'fix'
+        message = [
+            '>>> [ERROR] Optional all group - FAIL.',
+            '  >> The "{}" group is transformed (has translate, rotate or scale values)'.format(geo_parent),
+            '  > Make sure that the group transformation values are set to zero for translation ',
+            '  > and rotation and 1 for scale.',
+        ]
+
+        scene_data.validation_data['all_group_check'] = status
+        return status, message
+
+    # check group name is all
+
+    if geo_parent != ['all']:
+        status = 'warning_fix'
+        message = [
+            '>>> [WARNING] Optional all group - Warning.',
+            '  > You could rename the group holding the _BODY and the GEO as "all" and this will',
+            '    very useful if you later on want to use this character maya scene',
+            '    in the Wonder Studio Maya Scene.',
+        ]
+
+        scene_data.validation_data['all_group_check'] = status
+        return status, message
+
+    status = 'pass'
+    message = '>>> Character joint mapping data check - PASS.'
+
+    scene_data.validation_data['all_group_check'] = status
+    return status, message
 
 def poly_count_check(scene_data, poly_limit=1500000):
     """Check if the sum of faces of all the meshes stored in scene_data are less than the
@@ -180,20 +375,15 @@ def rig_hierarchy_check(scene_data):
     Returns:
         bool: the result of the check, True if hierarchy is correct and Fals if it's not.
     """
-    rig_parents = cmds.listRelatives(scene_data.rig_selection, parent=True, fullPath=True)
-
     if not scene_data.rig_group:
         return False
 
-    rig_group = '|' + scene_data.rig_group
+    rig_parents = cmds.listRelatives(scene_data.rig_selection, parent=True, fullPath=True)
 
     if not rig_parents:
         return False
 
-    if rig_parents[0] != rig_group:
-        return False
-
-    return True
+    return rig_parents[0] == scene_data.rig_group
 
 
 def mesh_skinning_check(scene_data):
@@ -218,11 +408,13 @@ def mesh_skinning_check(scene_data):
     return missing_skin
 
 
-def rig_check(scene_data):
+def rig_check(scene_data, mode=static.VALIDATION_NORMAL):
     """Check if the current scene data has a rig defined. The status for this check is stored
     in the scene_data object.
     Args:
         scene_data (CollectExportData): the object with the scene data already initialized.
+        mode (str): The mode the validation is running on. It can be either static.VALIDATION_NORMAL
+            or static.VALIDATION_USD
     Returns:
         tuple(str, str): the result of the check, first status (fail|pass) the then the
             message explaining the status.
@@ -283,6 +475,49 @@ def rig_check(scene_data):
             message.append('  > Mesh \"{}\" is not skinned.'.format(mesh.split('|')[-1]))
 
         message.append('  > All meshes must be skinned to the rig!')
+
+        scene_data.validation_data['rig_check'] = status
+        return status, message
+
+    # check joints are not duplicated in names
+    joints = cmds.listRelatives(character_rig, allDescendents=True, type='joint') or []
+    joints += [character_rig]
+    duplicated_joint_names = [j for j in joints if len(cmds.ls(j)) > 1]
+    if duplicated_joint_names:
+        status = 'fail'
+        message = ['>>> [ERROR] Character rig check - FAIL.']
+
+        for joint in duplicated_joint_names:
+            message.append('  > Joint name \"{}\" is not unique.'.format(joint))
+
+        message.append('  > All skinned joints must have unique name!')
+
+        scene_data.validation_data['rig_check'] = status
+        return status, message
+
+    # check joints have USD compatible names
+    if mode == static.VALIDATION_USD:
+        non_compatible_names_list = [j for j in joints if not utilities.is_valid_usd_name(j)]
+        if non_compatible_names_list:
+            status = 'fix'
+            message = ['>>> [ERROR] Character rig check - FAIL.',
+                '  > There are some joint with names that are not USD compatible. This will mean that',
+                '  > if you want to replace a rig in the Wonder Studio Maya scene you might not be',
+                '  > getting the animation because of a name mismatch in the reference edits.',
+                ]
+
+            scene_data.validation_data['rig_check'] = status
+            return status, message
+
+    # check no animation
+    animation_curves_found = utilities.get_animation_curves_connected_to_group(character_rig)
+    if animation_curves_found:
+        status = 'warning_fix'
+        message = ['>>> [WARNING] Character rig check - optional FIX.',
+            '  > There are some animation curves connected to the rig. Please remove them because',
+            '  > they may introduce differences between what you see now, and what will be exported',
+            '  > in the FBX file.',
+            ]
 
         scene_data.validation_data['rig_check'] = status
         return status, message
@@ -375,7 +610,7 @@ def rig_ik_check(scene_data):
     # Check if all joint pairs are in the same joint hierarchy.
     for pair_dict in static.ik_pairs.values():
         chain_start, chain_end = pair_dict['keys']
-        all_children = cmds.listRelatives(all_bones[chain_start], allDescendents=True, type='joint') or []
+        all_children = cmds.listRelatives(all_bones[chain_start], allDescendents=True, type='joint', pa=1) or []
         pair_dict['status'] = all_bones[chain_end] in all_children
 
     # Check the IK data and generate status and messages to be returned.
@@ -437,7 +672,9 @@ def face_check(scene_data, face_geo=None):
     error_messages = []
     warn_messages = []
 
-    valid_blendshape_names = [n for n in scene_data.metadata_json['face']['blendshape_names'] if n != 'basis']
+    # Exclude unused blendshapes and basis
+    excluded_shapes = ['Basis', 'jawClenchL', 'jawClenchR']
+    valid_blendshape_names = [n for n in scene_data.metadata_json['face']['blendshape_names'] if n not in excluded_shapes]
 
     # Naming check
     if face_geo.split('_')[-1] != 'FACE':

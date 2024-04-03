@@ -24,6 +24,7 @@ def run():
     scene_data.gui_inst = user_interface
 
     user_interface.open_window()
-    validation_main.validation_run(scene_data)
+    mode = user_interface.get_validation_mode()
+    validation_main.validation_run(scene_data, mode=mode)
 
     return user_interface

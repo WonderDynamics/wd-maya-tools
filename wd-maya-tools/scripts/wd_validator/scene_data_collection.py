@@ -51,7 +51,7 @@ class CollectExportData:
         """
         self.reset_variables()
 
-        geo_grp = cmds.ls('|GEO')
+        geo_grp = cmds.ls('GEO')
 
         if geo_grp:
             self.geo_group = geo_grp
@@ -109,7 +109,10 @@ class CollectExportData:
 
         # Find rig group
         if self.rig_selection:
-            rig_group = cmds.ls(self.rig_selection, long=True)[0].split('|')[1]
+
+            top_joint_parent = cmds.listRelatives(self.rig_selection, p=1, f=1)
+            rig_group = top_joint_parent[0] if top_joint_parent else ''
+
             suffix = '_BODY'
 
             if rig_group.endswith(suffix):

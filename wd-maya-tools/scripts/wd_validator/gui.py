@@ -6,6 +6,7 @@
 """Module for main Validation UI."""
 
 from functools import partial
+import functools
 import webbrowser
 import importlib
 from datetime import datetime
@@ -80,12 +81,21 @@ class ValidationUI(object):
         self.generate_validation_windows()
 
         cmds.setParent(self.main_column)
+        cmds.separator(h=20, style='none')
         cmds.separator()
 
-        # Script controlls
+        # Script controls
         controls_form = cmds.formLayout(numberOfDivisions=100)
 
         self.validate_button = cmds.button(label='Refresh Validation', command=self.start_validation)
+
+        checkbox_annotation = 'Enable USD support to use all USD,\nMaya and Unreal export features in\nWonder Studio.'
+        self.validate_usd_checkbox = cmds.checkBox(label='Enable USD Support: Required for USD, Maya and Unreal Engine export.', v=0, changeCommand=self.start_validation,
+                                                   annotation=checkbox_annotation)
+    
+        separator_val = cmds.separator()
+        separator_exp = cmds.separator()
+
         docs_button = cmds.button(label='Documentation', command=self.open_documentation)
         self.export_all_button = cmds.button(
             label='Export with xGen', enable=False, command=self.export_with_xgen
@@ -100,25 +110,54 @@ class ValidationUI(object):
             controls_form,
             edit=True,
             attachForm=(
+                (self.validate_usd_checkbox, 'left', 2),
+                (self.validate_usd_checkbox, 'right', 2),
+                (self.validate_usd_checkbox, 'top', 2),
+
+                (separator_val, 'left', 2),
+                (separator_val, 'right', 2),
+                
                 (self.validate_button, 'left', 2),
                 (self.validate_button, 'right', 2),
-                (self.validate_button, 'top', 2),
+                # (self.validate_button, 'top', 2),
                 (docs_button, 'left', 2),
                 (abort_button, 'right', 2),
+
+                (separator_exp, 'left', 2),
+                (separator_exp, 'right', 2),
+
+
                 (self.export_all_button, 'left', 2),
                 (self.export_without_xgen_button, 'right', 2),
             ),
             attachControl=(
-                (docs_button, 'top', 2, self.validate_button),
+                # (self.validate_usd_checkbox, 'left', 10, self.validate_button),
+                # (self.validate_button, 'right', 10, self.validate_usd_checkbox),
+                (self.validate_button, 'top', 2, self.validate_usd_checkbox),
+
+                (separator_val, 'top', 2, self.validate_button),
+
+                (docs_button, 'top', 2, separator_val),
+                # (docs_button, 'top', 2, self.validate_button),
                 (docs_button, 'right', 2, terminal_button),
-                (abort_button, 'top', 2, self.validate_button),
-                (terminal_button, 'top', 2, self.validate_button),
+                (abort_button, 'top', 2, separator_val),
+                (terminal_button, 'top', 2, separator_val),
+
+                (separator_exp, 'top', 2, docs_button),
+
+                # (abort_button, 'top', 2, self.validate_button),
+                # (terminal_button, 'top', 2, self.validate_button),
                 (terminal_button, 'right', 2, abort_button),
-                (self.export_all_button, 'top', 2, docs_button),
+                (self.export_all_button, 'top', 2, separator_exp),
+                # (self.export_all_button, 'top', 2, docs_button),
                 (self.export_all_button, 'right', 2, self.export_without_xgen_button),
-                (self.export_without_xgen_button, 'top', 2, docs_button),
+                (self.export_without_xgen_button, 'top', 2, separator_exp),
+                # (self.export_without_xgen_button, 'top', 2, docs_button),
+
             ),
             attachPosition=(
+                # (self.validate_button, 'right', 0, 78),
+                # (self.validate_usd_checkbox, 'left', 0, 80),
                 (terminal_button, 'left', 0, 45),
                 (abort_button, 'left', 0, 55),
                 (self.export_without_xgen_button, 'left', 0, 50),
@@ -127,10 +166,40 @@ class ValidationUI(object):
 
         cmds.setParent(self.main_column)
         cmds.separator(height=5, style='out')
-        cmds.text(label='Wonder Dynamics 2023 - {}'.format(static.ADDON_VERSION), align='center', height=18)
+        cmds.text(label='Wonder Dynamics - {}'.format(static.ADDON_VERSION), align='center', height=18)
         cmds.separator(height=5, style='in')
 
         self.load_saved_data()
+
+    def get_validation_mode(self):
+        """Returns the mode for the validator.
+
+        Returns:
+            str: The validator mode. Can be either static.VALIDATOR_NORMAL or static.VALIDATOR_USD
+        """
+        mode = static.VALIDATION_NORMAL
+        if hasattr(self, 'validate_usd_checkbox') and cmds.checkBox(self.validate_usd_checkbox, q=1, v=1):
+            mode = static.VALIDATION_USD
+        return mode
+
+    def set_validation_mode(self, mode):
+        """Sets the validation mode
+
+        Args:
+            mode (str): the validator mode. Can be either static.VALIDATOR_NORMAL or static.VALIDATOR_USD
+
+        Returns:
+            bool: Whether or not the mode was set
+        """
+
+        # if UI is not constructed
+        if not hasattr(self, 'validate_usd_checkbox'):
+            return False
+
+        value = mode == static.VALIDATION_USD
+        cmds.checkBox(self.validate_usd_checkbox, e=1, v=value)
+        return True
+
 
     def open_window(self, *args):
         """Opens the Main Validator UI."""
@@ -279,7 +348,9 @@ class ValidationUI(object):
         """Calls the validation process and then sets the enable state for the export buttons based on
         validation success.
         """
-        validate.validation_run(self.scene_data)
+        mode = self.get_validation_mode()
+        self.scene_data.metadata_json['usd'] =  mode == static.VALIDATION_USD
+        validate.validation_run(self.scene_data, mode=mode)
         self.enable_export()
 
     def fix_button(self, val_type, *args):
@@ -295,8 +366,19 @@ class ValidationUI(object):
         if val_type == 'referenced_data':
             val_fix.reference_data_fix()
 
+        if val_type == 'geo_check':
+            val_fix.remove_animation_on_geo_fix(self.scene_data)
+
         if val_type == 'history_check':
             val_fix.remove_pre_skin_history(self.scene_data)
+
+        if val_type == 'all_group_check':
+            val_fix.all_group_fix(self.scene_data)
+
+        if val_type == 'rig_check':
+            val_fix.joint_name_fix(self.scene_data)
+            val_fix.remove_animation_on_rig_fix(self.scene_data)
+
 
         # val_fix.save_scene()
         self.start_validation()
@@ -370,7 +452,7 @@ class ValidationUI(object):
             else:
                 selected = selected[0]
 
-            if selected.split('|')[1] == 'GEO':
+            if selected.split('|')[-2] == 'GEO':  # get parent from a full path
                 status, message = validation_tools.face_check(face_geo=selected, scene_data=self.scene_data)
                 self.update_status(val_type='face_check', status=status)
                 self.update_script_output(message=message)
@@ -534,6 +616,21 @@ class ValidationUI(object):
             xgen_export (bool, optional): Whether or not to export XGen dynamic grooms for
                 the character. Defaults to False.
         """
+
+        # confirm user is aware of USD checks being skipped.
+        if self.get_validation_mode() != static.VALIDATION_USD:
+            msg = ('You are currently not checking for USD validations. This could make '
+                    'features like USD, Maya and Unreal exports not to work properly.\n'
+                    'What do you want to do?')
+            buttons = ['Cancel this export and enable USD checks', 'Export ignoring additional checks']
+            answer = cmds.confirmDialog(message=msg, title='Wonder Studio Validation Question', button=buttons, defaultButton=buttons[0])
+
+            # enable usd checks
+            if answer == buttons[0]:
+                self.set_validation_mode(static.VALIDATION_USD)
+                self.start_validation()
+                return
+
         # Validate the scene and character again in case of scene changes
         self.start_validation()
 
