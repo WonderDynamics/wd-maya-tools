@@ -619,11 +619,10 @@ class ValidationUI(object):
 
         # confirm user is aware of USD checks being skipped.
         if self.get_validation_mode() != static.VALIDATION_USD:
-            msg = ('You are currently not checking for USD validations. This could make '
-                    'features like USD, Maya and Unreal exports not to work properly.\n'
-                    'What do you want to do?')
-            buttons = ['Cancel this export and enable USD checks', 'Export ignoring additional checks']
-            answer = cmds.confirmDialog(message=msg, title='Wonder Studio Validation Question', button=buttons, defaultButton=buttons[0])
+            msg = ('USD support validation is disabled!\n'
+                    'This may cause issues with USD, Maya, and Unreal exports.')
+            buttons = ['Cancel and enable USD support', 'Continue']
+            answer = cmds.confirmDialog(message=msg, title='USD Validation Warning', button=buttons, defaultButton=buttons[0])
 
             # enable usd checks
             if answer == buttons[0]:
