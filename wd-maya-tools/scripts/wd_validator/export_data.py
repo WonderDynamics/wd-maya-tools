@@ -146,11 +146,11 @@ class ExportReparentContext:
     def __init__(self, body, geo):
         """
         Args:
-            body (str): The _BODY group.
+            body (str): The BODY group.
             geo (str): The GEO group
         """
 
-        self.body = self._check(body, 'Could not find a single _BODY, found: {}')
+        self.body = self._check(body, 'Could not find a single BODY, found: {}')
 
         self.geo = self._check(geo, 'Could not find a single GEO, found: {}')
 
@@ -187,7 +187,7 @@ class ExportReparentContext:
             return
 
         # if there were an object with the same name at root, we need to rename it temporarily
-        # this should not happen if we check for a single object for GEO and *_BODY
+        # this should not happen if we check for a single object for GEO and *BODY
         if cmds.objExists(target_name):
             pre_renamed = cmds.rename(target_name, target_name + self.suffix)
             self.renames[pre_renamed] = target_name

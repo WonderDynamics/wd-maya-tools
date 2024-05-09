@@ -421,7 +421,7 @@ def rig_check(scene_data, mode=static.VALIDATION_NORMAL):
     """
     character_rig = scene_data.rig_selection
 
-    if not character_rig:
+    if not character_rig or not cmds.objExists(character_rig):
         status = 'fail'
 
         # Check if any rig exists in the scene
@@ -445,6 +445,20 @@ def rig_check(scene_data, mode=static.VALIDATION_NORMAL):
 
         else:
             message.append('  > Rig and blendshapes need to be contained inside a group with the \"_BODY\" suffix.')
+
+        scene_data.validation_data['rig_check'] = status
+        return status, message
+
+    # check multiple root bones
+    rig_parent = cmds.listRelatives(character_rig, p=1, pa=1) or []
+    roots = cmds.listRelatives(rig_parent, pa=1, type='joint') or []
+    if len(roots) != 1:
+        status = 'fail'
+        message = ['>>> [ERROR] Character rig check - FAIL.',]
+
+        message.append('  > Make sure that there is a single root bone in the joint hierarchy,')
+        message.append('  > and all joint are parented under joint "{}".'.format(character_rig))
+        message.append('  > Currently, we have {} roots: {}.'.format(len(roots), ', '.join(roots)))
 
         scene_data.validation_data['rig_check'] = status
         return status, message
@@ -677,7 +691,7 @@ def face_check(scene_data, face_geo=None):
     valid_blendshape_names = [n for n in scene_data.metadata_json['face']['blendshape_names'] if n not in excluded_shapes]
 
     # Naming check
-    if face_geo.split('_')[-1] != 'FACE':
+    if not face_geo.endswith('FACE'):
         error_messages.append('  > Wrong face mesh name! Main face mesh name does not end with the tag "FACE"!')
 
     # Blendshapes check
@@ -737,12 +751,14 @@ def face_check(scene_data, face_geo=None):
             ]
             warn_messages += warn_msg
 
-    # Make sure that there are no other geometries with "_FACE" suffix.
+    # Make sure that there are no other geometries with "FACE" suffix.
     all_face_geo = []
     if scene_data.all_meshes:
         for mesh in scene_data.all_meshes:
+            if not cmds.objExists(mesh):
+                continue
             transform = cmds.listRelatives(mesh, parent=True, fullPath=True)[0]
-            if transform.split('_')[-1] == 'FACE':
+            if transform.endswith('FACE'):
                 all_face_geo.append(transform)
 
     if len(all_face_geo) > 1:

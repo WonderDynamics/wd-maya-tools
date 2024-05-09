@@ -113,7 +113,7 @@ class CollectExportData:
             top_joint_parent = cmds.listRelatives(self.rig_selection, p=1, f=1)
             rig_group = top_joint_parent[0] if top_joint_parent else ''
 
-            suffix = '_BODY'
+            suffix = 'BODY'
 
             if rig_group.endswith(suffix):
                 self.rig_group = rig_group
