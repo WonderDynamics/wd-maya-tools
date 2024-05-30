@@ -66,8 +66,8 @@ accepting_textures = [
     'normalCamera',
 ]
 
-ADDON_VERSION = '1.0.4'
-METADATA_VERSION = '1.0.1'
+ADDON_VERSION = '1.1.1'
+METADATA_VERSION = '1.1.0'
 MAX_NAME_LENGHT = 50
 
 GITBOOK_ROOT = 'https://help.wonderdynamics.com'
@@ -103,6 +103,10 @@ validation_windows_data = {
     'rig_group_check': {
         'message': 'Checking rig group suffix...',
         'help_path': GITBOOK_VALIDATION + '/error-messages/wrong-skeleton-armature-name',
+    },
+    'all_group_check': {
+        'message': 'Checking optional "all" group ...',
+        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/optional-all-group',
     },
     'history_check': {
         'message': 'Checking for construction history...',
@@ -174,7 +178,9 @@ eye_values = {
 
 metadata_template = {
     'software': 'maya',
+    'addon_version': ADDON_VERSION,
     'version': METADATA_VERSION,
+    'usd': False,
     'materials': [],
     'eyes_rig': [],
     'body': {
@@ -419,3 +425,6 @@ ik_pairs = {
 
 # Nodes that will fail a construction history check
 history_nodes = ['deleteComponent', 'geometryFilter', 'polyBase']
+
+VALIDATION_NORMAL = 'normal'
+VALIDATION_USD = 'usd'

@@ -412,3 +412,83 @@ def get_spline_description(spline_base):
             return node[0]
 
         node = cmds.listConnections('{}.outSplineData'.format(node[0]), shapes=True)
+
+
+def is_valid_usd_name(name):
+    """Returns whether or not a name is USD valid.
+
+    Args:
+        name (str): The name to check.
+
+    Returns:
+        bool: whether or not the name is valid
+    """
+    return name == to_valid_usd_name(name)
+
+
+def to_valid_usd_name(name):
+    """Converts name to a valid USD identifier.
+
+    Args:
+        name (str): The name to convert.
+
+    Returns:
+        str: the valid identifier closer to the original name.
+    """
+    valid_name = name or '_'
+    valid_name = re.sub('[^a-zA-Z0-9]', '_', valid_name)
+    if re.match('^[0-9]+.*', valid_name):
+        valid_name = '_' + valid_name[1:]
+    return valid_name
+
+
+def get_animation_curves_connected_to_group(*groups):
+    """Returns any animation curve connected to the group and it's children's history.
+
+    Args:
+        group (*str): The group to inspect.
+
+    Returns:
+        list[str]: The list of animation curves found.
+    """
+    group_nodes = list(groups) + cmds.listRelatives(groups, allDescendents=True, path=True) or []
+    animation_curves_found = cmds.ls(cmds.listConnections(group_nodes), type='animCurve')
+    animation_curves_found += cmds.ls(cmds.listHistory(group_nodes), type='animCurve')
+    return sorted(list(set(animation_curves_found)))
+
+
+def disconnect_curves(animation_curves):
+    """Disconnect the curves from it's source connection.
+
+    Args:
+        animation_curves (list[str]): The list of curves to disconnect.
+    """
+    print('>>> Disconnecting curves ...')
+    success = []
+    failure = []
+    not_connected = []
+    for anim_curve in animation_curves:
+        connections = cmds.listConnections(anim_curve + '.output', source=False, connections=True, plugs=True, destination=True)
+
+        if not connections:
+            print('  >   - WARNING! Could not find destination connection for curve {}'.format(anim_curve))
+            not_connected.append(anim_curve)
+            continue
+
+        for i in range(0, len(connections), 2):
+            try:
+                cmds.disconnectAttr(connections[i], connections[i + 1])
+                print('  >   - Disconnected curve from {} to {}'.format(connections[i], connections[i + 1]))
+                success.append(anim_curve)
+            except Exception as exc:
+                print('  >   - WARNING! Could not disconnect {} and {} because {}'.format(connections[i], connections[i + 1], exc))
+                failure.append(anim_curve)
+
+    msg = '  > Result: Disconnected {} and failed {}. {}'
+    conn_msg = ' {} curves where not connected to anything.'.format(len(not_connected)) if not_connected else ''
+    print(msg.format(len(success), len(failure), conn_msg))
+    if failure:
+        print('  > Please disconnect manually the following failed curves:')
+        print('  >   - ' + '\n  >   - '.join(failure))
+
+

@@ -5,6 +5,7 @@
 
 """Module handling export to disk operations with scene data."""
 
+import datetime
 import os
 import json
 import importlib
@@ -64,7 +65,7 @@ def create_export_dir(scene_data):
 
 
 def remove_fbx_attribute(scene_data):
-    """ Loops trought all joints in the scene and removes filmboxTypeID attribute if found.
+    """ Loops trough all joints in the scene and removes filmboxTypeID attribute if found.
     Args:
         scene_data (CollectExportData): the object holding the scene data.
     """
@@ -117,28 +118,155 @@ def export_meshes(scene_data):
     remove_fbx_attribute(scene_data)
     # Fix blendshapes so they don't break the mesh during export
     fix_blendshapes(scene_data)
-    # Select objects
-    cmds.select(clear=True)
-    cmds.select(scene_data.geo_group)
-    cmds.select(scene_data.rig_selection, add=True)
-    cmds.select(scene_data.blendshapes, add=True)
 
-    # Create export path
-    export_path = os.path.join(scene_data.export_dir, 'character.fbx').replace('\\', '/')
+    with ExportReparentContext(scene_data.rig_group, scene_data.geo_group[0]):
 
-    # Load FBX plugin and export
-    cmds.loadPlugin('fbxmaya')
+        # Select objects
+        cmds.select(clear=True)
+        cmds.select(scene_data.geo_group)
+        cmds.select(scene_data.rig_selection, add=True)
+        cmds.select(scene_data.blendshapes, add=True)
 
-    mel.eval('FBXResetExport')
-    mel.eval('FBXExportFileVersion -v FBX202000')
-    mel.eval('FBXExportInAscii -v false')
-    mel.eval('FBXExport -f \"{}\" -s'.format(export_path))
+        # Create export path
+        export_path = os.path.join(scene_data.export_dir, 'character.fbx').replace('\\', '/')
+
+        # Load FBX plugin and export
+        cmds.loadPlugin('fbxmaya')
+
+        mel.eval('FBXResetExport')
+        mel.eval('FBXExportFileVersion -v FBX202000')
+        mel.eval('FBXExportInAscii -v false')
+        mel.eval('FBXExport -f \"{}\" -s'.format(export_path))
 
     print('\nData exported to: ' + export_path + '\n')
 
 
+class ExportReparentContext:
+    """Context that will un parent the needed parts for the FBX export and put them back afterwards."""
+    def __init__(self, body, geo):
+        """
+        Args:
+            body (str): The BODY group.
+            geo (str): The GEO group
+        """
+
+        self.body = self._check(body, 'Could not find a single BODY, found: {}')
+
+        self.geo = self._check(geo, 'Could not find a single GEO, found: {}')
+
+        self.suffix = datetime.datetime.now().strftime('%H%M%S%f')
+
+        self.renames = {}
+
+    def _check(self, name, msg):
+        """Checks there is a single node named like name and returns is as a long name.
+
+        Args:
+            name (str): The short node name.
+            msg (str): The message for the assert in case of failure.
+
+        Returns:
+            str: Long path to the node.
+        """
+        found = cmds.ls(name, l=1)  # long name
+        assert len(found) == 1, msg.format(found)
+        return found[0]
+
+    def _move_to_root(self, name):
+        """Moves nodes to scene root.
+
+        Args:
+            name (str): Full path to node.
+        """
+        # check if name is used, if it is rename and add to rename mapping
+        short_name = self._short_name(name)
+        target_name = '|' + short_name
+
+        # check if name is already on root
+        if name == target_name:
+            return
+
+        # if there were an object with the same name at root, we need to rename it temporarily
+        # this should not happen if we check for a single object for GEO and *BODY
+        if cmds.objExists(target_name):
+            pre_renamed = cmds.rename(target_name, target_name + self.suffix)
+            self.renames[pre_renamed] = target_name
+
+        # check if something went wrong and revert if needed
+        result = cmds.parent(name, w=1)[0]
+        if result!=short_name:
+            # parent back
+            parent = self._get_parent_by_name(name)
+            cmds.parent(result, parent)
+            # raise error
+            assert result==short_name, 'When un parenting {} the name has changed!'.format(name)
+
+    def _short_name(self, name):
+        """Returns the short name from a long name.
+
+        Args:
+            name (str): The long name.
+
+        Returns:
+            str: The short name.
+        """
+        return name.rsplit('|', 1)[-1]
+
+    def _get_parent_by_name(self, name):
+        """Gets the parent full path by manipulating the long path.
+
+        Args:
+            name (str): The long path to the node we are trying to get
+                the parent for.
+
+        Returns:
+            str: The full path to the parent.
+        """
+        return name.rsplit('|', 1)[0]
+
+
+    def _parent_back(self, name):
+        """Parents back the un parent groups.
+
+        Args:
+            name (str): The original full path to the node.
+        """
+        short_name = self._short_name(name)
+        target_name = '|' + short_name
+
+        # check if name was originally on root
+        if name == target_name:
+            return
+
+        if not cmds.objExists(target_name):
+            print('Could not find {} to parent back!'.format(target_name))
+            return
+
+        parent = self._get_parent_by_name(name)
+        if not cmds.objExists(parent):
+            print('Could not find parent {} to parent back!'.format(parent))
+            return
+        cmds.parent(target_name, parent)
+
+    def __enter__(self):
+        self._move_to_root(self.body)
+        self._move_to_root(self.geo)
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+
+        # move back the geo and body
+        self._parent_back(self.body)
+        self._parent_back(self.geo)
+
+        # restore any object that was renamed to do this
+        for current, previous in self.renames.items():
+            result = cmds.rename(current, previous)
+            assert result == previous, 'Could not restore name from {} to {}'.format(current, previous)
+
+
+
 def remove_fbx_suffix(material):
-    """ Remove a fbx namming conflict suffix from the mateirla name.
+    """ Remove a fbx naming conflict suffix from the material name.
     Args:
         material (str): Name of the material.
     Returns:
@@ -148,7 +276,7 @@ def remove_fbx_suffix(material):
 
 
 def export_textures(scene_data):
-    """Copies textures defiend in material defined in scene data by name and creates
+    """Copies textures defined in material defined in scene data by name and creates
     the description data for the materials that are stored in the scene data
     metadata_json key.
     Args:
