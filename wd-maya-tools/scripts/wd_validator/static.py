@@ -66,8 +66,8 @@ accepting_textures = [
     'normalCamera',
 ]
 
-ADDON_VERSION = '1.1.1'
-METADATA_VERSION = '1.1.0'
+ADDON_VERSION = '1.1.2'
+METADATA_VERSION = '1.1.1'
 MAX_NAME_LENGHT = 50
 
 GITBOOK_ROOT = 'https://help.wonderdynamics.com'
@@ -272,8 +272,6 @@ metadata_template = {
             "eyeWidenLowerR": None,
             "eyeWidenUpperL": None,
             "eyeWidenUpperR": None,
-            "jawClenchL": None,
-            "jawClenchR": None,
             "jawIn": None,
             "jawL": None,
             "jawOpen": None,
