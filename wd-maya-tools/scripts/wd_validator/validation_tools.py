@@ -687,7 +687,7 @@ def face_check(scene_data, face_geo=None):
     warn_messages = []
 
     # Exclude unused blendshapes and basis
-    excluded_shapes = ['Basis', 'jawClenchL', 'jawClenchR']
+    excluded_shapes = ['Basis']
     valid_blendshape_names = [n for n in scene_data.metadata_json['face']['blendshape_names'] if n not in excluded_shapes]
 
     # Naming check
