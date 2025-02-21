@@ -1,10 +1,10 @@
-# Copyright 2023 Wonder Dynamics
+# Copyright 2025 Wonder Dynamics (an Autodesk Company)
 
 # This source code is licensed under the GNU GPLv3
 # found in the LICENSE file in the root directory of this source tree.
 
 """ This module implements the ui and the related functionality for mapping joints in the maya
-scene to bones in the expected skeleton for the Wonder Studio Character.
+scene to bones in the expected skeleton for the Flow Studio Character.
 """
 
 import copy
@@ -58,7 +58,7 @@ retarget_fields_template = {
 
 class RigRetargetingUI(object):
     """Class that implements the UI and it's methods for mapping joints to
-    bones in the Wonder Studio character.
+    bones in the Flow Studio character.
     """
 
     def __init__(self, scene_data):
@@ -67,7 +67,7 @@ class RigRetargetingUI(object):
             scene_data (CollectExportData): the object holding the scene data.
         """
         self.window = 'rig_retargeting'
-        self.title = 'Joint Mapping'
+        self.title = 'Flow Studio Character Validator - Joint Mapping'
         self.width = 400
 
         self.scene_data = scene_data
@@ -274,7 +274,7 @@ class RigRetargetingUI(object):
         close_button = cmds.button(label='Close', command=self.close_window)
 
         lower_separator_2 = cmds.separator(height=10, style='out')
-        version_text = cmds.text(label='Wonder Dynamics', align='center')
+        version_text = cmds.text(label='Wonder Dynamics (an Autodesk Company)', align='center')
         lower_separator_3 = cmds.separator(height=10, style='in')
 
         cmds.formLayout(

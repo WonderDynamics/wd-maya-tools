@@ -1,4 +1,4 @@
-"""Module with utilities to add the plates to maya cameras in the Wonder Studio Maya scene."""
+"""Module with utilities to add the plates to maya cameras in the Flow Studio Maya scene."""
 
 import os
 import platform
@@ -60,7 +60,7 @@ def get_project_folder() -> str:
 
 
 def convert_sequence_to_maya_compatible(folder: str, dst_folder: str) -> Tuple[str, subprocess.Popen]:
-    """Convert the wonder studio clean plate sequence in one that maya can load and
+    """Convert the Flow Studio clean plate sequence in one that maya can load and
     understand it's frames.
     Args:
         folder (str): Full path to the folder holding the frames.
@@ -115,7 +115,7 @@ def convert_sequence_to_maya_compatible(folder: str, dst_folder: str) -> Tuple[s
 
 
 def convert_sequence_to_maya_compatible_wait(folder: str, dst_folder: str) -> List[str]:
-    """Convert the wonder studio clean plate sequence in one that maya can load and
+    """Convert the Flow Studio clean plate sequence in one that maya can load and
     understand it's frames. WAITS FOR THE PROCESS TO END and returns existing frames.
     Args:
         folder (str): Full path to the folder holding the frames.

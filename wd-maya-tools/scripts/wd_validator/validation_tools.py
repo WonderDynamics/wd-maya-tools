@@ -1,4 +1,4 @@
-# Copyright 2023 Wonder Dynamics
+# Copyright 2025 Wonder Dynamics (an Autodesk Company)
 
 # This source code is licensed under the GNU GPLv3
 # found in the LICENSE file in the root directory of this source tree.
@@ -321,7 +321,7 @@ def all_group_check(scene_data, mode=static.VALIDATION_NORMAL):
             '>>> [WARNING] Optional all group - Warning.',
             '  > You could rename the group holding the _BODY and the GEO as "all" and this will',
             '    very useful if you later on want to use this character maya scene',
-            '    in the Wonder Studio Maya Scene.',
+            '    in the Flow Studio Maya Scene.',
         ]
 
         scene_data.validation_data['all_group_check'] = status
@@ -516,7 +516,7 @@ def rig_check(scene_data, mode=static.VALIDATION_NORMAL):
             status = 'fix'
             message = ['>>> [ERROR] Character rig check - FAIL.',
                 '  > There are some joint with names that are not USD compatible. This will mean that',
-                '  > if you want to replace a rig in the Wonder Studio Maya scene you might not be',
+                '  > if you want to replace a rig in the Flow Studio Maya scene you might not be',
                 '  > getting the animation because of a name mismatch in the reference edits.',
                 ]
 
