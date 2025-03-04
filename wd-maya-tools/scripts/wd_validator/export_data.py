@@ -1,4 +1,4 @@
-# Copyright 2023 Wonder Dynamics
+# Copyright 2025 Wonder Dynamics (an Autodesk Company)
 
 # This source code is licensed under the GNU GPLv3
 # found in the LICENSE file in the root directory of this source tree.
@@ -55,7 +55,7 @@ def create_export_dir(scene_data):
     scene_path = cmds.file(query=True, l=True)[0]
     scene_root_dir = os.path.dirname(scene_path)
 
-    pack_dir = os.path.join(scene_root_dir, '01_wonder_studio_character_data').replace('\\', '/')
+    pack_dir = os.path.join(scene_root_dir, static.EXPORT_FOLDER_NAME).replace('\\', '/')
 
     if not os.path.isdir(pack_dir):
         os.mkdir(pack_dir)

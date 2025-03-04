@@ -1,4 +1,4 @@
-# Copyright 2023 Wonder Dynamics
+# Copyright 2025 Wonder Dynamics (an Autodesk Company)
 
 # This source code is licensed under the GNU GPLv3
 # found in the LICENSE file in the root directory of this source tree.
@@ -30,7 +30,7 @@ class EyeRotationsUI(object):
 
     def __init__(self, scene_data):
         self.window = 'eye_rotations'
-        self.title = 'Eye Bone Mapping'
+        self.title = 'Flow Studio Character Validator - Eye Bone Mapping'
         self.width = 400
 
         self.scene_data = scene_data
@@ -69,7 +69,7 @@ class EyeRotationsUI(object):
         help_button = cmds.button(label='Help', command=self.open_help)
         close_button = cmds.button(label='Close', command=self.close_window)
         lower_separator_2 = cmds.separator(height=10, style='out')
-        version_text = cmds.text(label='Wonder Dynamics', align='center')
+        version_text = cmds.text(label='Wonder Dynamics (an Autodesk Company)', align='center')
         lower_separator_3 = cmds.separator(height=10, style='in')
 
         cmds.formLayout(

@@ -1,4 +1,4 @@
-# Copyright 2023 Wonder Dynamics
+# Copyright 2025 Wonder Dynamics (an Autodesk Company)
 
 # This source code is licensed under the GNU GPLv3
 # found in the LICENSE file in the root directory of this source tree.
@@ -48,7 +48,7 @@ class ValidationUI(object):
         self.script_terminal = None
 
         self.window = 'character_validation'
-        self.title = 'Character Validation and Export'
+        self.title = 'Flow Studio Character Validator'
         self.width = 515
 
         self.all_output_messages = ''
@@ -89,7 +89,7 @@ class ValidationUI(object):
 
         self.validate_button = cmds.button(label='Refresh Validation', command=self.start_validation)
 
-        checkbox_annotation = 'Enable USD support to use all USD,\nMaya and Unreal export features in\nWonder Studio.'
+        checkbox_annotation = 'Enable USD support to use all USD,\nMaya and Unreal export features in\nFlow Studio.'
         self.validate_usd_checkbox = cmds.checkBox(label='Enable USD Support: Required for USD, Maya and Unreal Engine export.', v=0, changeCommand=self.start_validation,
                                                    annotation=checkbox_annotation)
     
@@ -166,7 +166,7 @@ class ValidationUI(object):
 
         cmds.setParent(self.main_column)
         cmds.separator(height=5, style='out')
-        cmds.text(label='Wonder Dynamics - {}'.format(static.ADDON_VERSION), align='center', height=18)
+        cmds.text(label='Wonder Dynamics (an Autodesk Company) - {}'.format(static.ADDON_VERSION), align='center', height=18)
         cmds.separator(height=5, style='in')
 
         self.load_saved_data()

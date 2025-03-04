@@ -1,4 +1,4 @@
-# Copyright 2023 Wonder Dynamics
+# Copyright 2025 Wonder Dynamics (an Autodesk Company)
 
 # This source code is licensed under the GNU GPLv3
 # found in the LICENSE file in the root directory of this source tree.
@@ -66,95 +66,97 @@ accepting_textures = [
     'normalCamera',
 ]
 
-ADDON_VERSION = '1.1.2'
+ADDON_VERSION = '1.1.3'
 METADATA_VERSION = '1.1.1'
 MAX_NAME_LENGHT = 50
 
-GITBOOK_ROOT = 'https://help.wonderdynamics.com'
-GITBOOK_CHAR_PREP = GITBOOK_ROOT + '/character-creation/maya-add-on'
-GITBOOK_MAYA_PREP = GITBOOK_ROOT + '/character-creation/getting-started/character-setup'
-GITBOOK_VALIDATION = GITBOOK_ROOT + '/character-creation/character-validation-messages'
+EXPORT_FOLDER_NAME = 'flow_studio_character_data'
+
+DOC_ROOT = 'https://help.wonderdynamics.com'
+DOC_CHAR_PREP = DOC_ROOT + '/maya-add-on'
+DOC_MAYA_PREP = DOC_ROOT + '/character-creation-getting-started/character-setup'
+DOC_VALIDATION = DOC_ROOT + '/character-validation-messages'
 
 documentation_links = {
-    'docs': GITBOOK_CHAR_PREP,
-    'retarget_docs': GITBOOK_CHAR_PREP + '/joint-mapping-maya',
-    'eye_rotations_docs': GITBOOK_CHAR_PREP + '/eye-bone-mapping-maya',
+    'docs': DOC_CHAR_PREP,
+    'retarget_docs': DOC_CHAR_PREP + '/joint-mapping-maya',
+    'eye_rotations_docs': DOC_CHAR_PREP + '/eye-bone-mapping-maya',
 }
 
 validation_windows_data = {
     'header_1': {'message': 'Scene validation:'},
     'scene_saved': {
         'message': 'Checking if the scene is saved...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/scene-saved-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/scene-saved-validation',
     },
     'referenced_data': {
         'message': 'Checking for referenced scenes...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/referenced-scenes-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/referenced-scenes-validation',
     },
     'header_2': {'message': 'Character validation'},
     'geo_check': {
         'message': 'Checking if "GEO" group exists...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/geo-group-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/geo-group-validation',
     },
     'rig_check': {
         'message': 'Checking the rig...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/character-rig-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/character-rig-validation',
     },
     'rig_group_check': {
         'message': 'Checking rig group suffix...',
-        'help_path': GITBOOK_VALIDATION + '/error-messages/wrong-skeleton-armature-name',
+        'help_path': DOC_VALIDATION + '/error-messages/wrong-skeleton-armature-name',
     },
     'all_group_check': {
         'message': 'Checking optional "all" group ...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/optional-all-group',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/optional-all-group',
     },
     'history_check': {
         'message': 'Checking for construction history...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/construction-history-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/construction-history-validation',
     },
     'poly_count_check': {
         'message': 'Checking the polygon count...',
-        'help_path': GITBOOK_VALIDATION + '/error-messages/poly-count-limit-exceeded',
+        'help_path': DOC_VALIDATION + '/error-messages/poly-count-limit-exceeded',
     },
     'retargeting_check': {
         'message': 'Checking joint mapping data...',
-        'help_path': GITBOOK_VALIDATION + '/error-messages/hips-bone-not-found',
+        'help_path': DOC_VALIDATION + '/error-messages/hips-bone-not-found',
     },
         'ik_check': {
         'message': 'Checking IK joint chains...',
-        'help_path': GITBOOK_VALIDATION + '/warning-messages/unable-to-establish-all-ik-bone-chains',
+        'help_path': DOC_VALIDATION + '/warning-messages/unable-to-establish-all-ik-bone-chains',
     },
     'face_check': {
         'message': 'Checking face geometry...',
         'help_path': [
-            GITBOOK_VALIDATION + '/error-messages/wrong-face-mesh-name',
-            GITBOOK_VALIDATION + '/error-messages/no-valid-blendshapes',
-            GITBOOK_VALIDATION + '/error-messages/multiple-main-face-meshes',
+            DOC_VALIDATION + '/error-messages/wrong-face-mesh-name',
+            DOC_VALIDATION + '/error-messages/no-valid-blendshapes',
+            DOC_VALIDATION + '/error-messages/multiple-main-face-meshes',
         ]
     },
     'material_type_check': {
         'message': 'Checking materials type...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/materials-type-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/materials-type-validation',
     },
         'naming_check': {
         'message': 'Checking naming...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/naming-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/naming-validation',
     },
     'material_connections_check': {
         'message': 'Checking material shading graph...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/materials-shading-graph-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/materials-shading-graph-validation',
     },
     'file_nodes_check': {
         'message': 'Checking for empty file nodes...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/empty-file-nodes-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/empty-file-nodes-validation',
     },
     'textures_check': {
         'message': 'Checking the textures...',
-        'help_path': GITBOOK_VALIDATION + '/error-messages/missing-or-unsupported-texture-files-detected',
+        'help_path': DOC_VALIDATION + '/error-messages/missing-or-unsupported-texture-files-detected',
     },
     'xGen_check': {
         'message': 'Checking xGen grooms...',
-        'help_path': GITBOOK_VALIDATION + '/maya-specific-messages/xgen-materials-validation',
+        'help_path': DOC_VALIDATION + '/maya-specific-messages/xgen-materials-validation',
     },
 }
 
@@ -345,7 +347,7 @@ face_rig_template = {
 }
 
 # WD bones, unrealEngine bones, daz3d bones, character creator 4,
-retargeting_templates_names = ['Wonder Dynamics', 'Unreal Engine', 'DAZ 3d', 'Character Creator 4', 'Quick Rig']
+retargeting_templates_names = ['Flow Studio', 'Unreal Engine', 'DAZ 3d', 'Character Creator 4', 'Quick Rig']
 retargeting_templates = {
     'Hips': ['Hips', 'pelvis', 'hip', 'CC_Base_Hip', 'QuickRigCharacter_Hips'],
     'LeftUpLeg': ['LeftUpLeg', 'thigh_l', 'lThigh', 'CC_Base_L_Thigh', 'QuickRigCharacter_LeftUpLeg'],

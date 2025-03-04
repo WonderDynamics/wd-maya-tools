@@ -1,4 +1,4 @@
-"""Module to load wonder studio clean plates to maya scene.
+"""Module to load Flow Studio clean plates to maya scene.
 
 To run this tool, type on the script editor the following:
 
@@ -19,10 +19,10 @@ from wd_load_plates import plates_utils
 def main_ui() -> None:
     """Main entry point for the tool. Will show instructions and a confirmation button."""
     message = (
-        '\nThis is the Wonder Studio Load Plates utility, it is used to add clean plates downloaded '
+        '\nThis is the Flow Studio Load Plates utility, it is used to add clean plates downloaded '
         'from the platform into your scene.\n\nMake sure you:\n - have downloaded and unzipped your '
-        'clean plates into a folder\n - have the Maya project set to the Wonder Studio Maya scene '
-        'folder.\n - have the Wonder Studio Maya scene open.\n\n When ready, click the "Add Plates '
+        'clean plates into a folder\n - have the Maya project set to the Flow Studio Maya scene '
+        'folder.\n - have the Flow Studio Maya scene open.\n\n When ready, click the "Add Plates '
         'to Cameras" button.\n\nOnce you proceed to add plates to cameras, you will:\n\n - be '
         'prompted to browse for the folder where you have extracted the clean plates\n - be prompt '
         'about where you want to store the Maya-compatible clean plates (either on the Maya project '
@@ -32,7 +32,7 @@ def main_ui() -> None:
     )
 
     buttons = ['Cancel', 'More Information', 'Add Plates to Cameras']
-    answer = cmds.confirmDialog(message=message, title='Wonder Studio Load Plates Utility', button=buttons)
+    answer = cmds.confirmDialog(message=message, title='Flow Studio Load Plates Utility', button=buttons)
 
     if answer == buttons[0]:
         print('User cancelled process for adding plates to cameras.')
@@ -63,7 +63,7 @@ def add_all_plates_ui() -> None:
     scene_name = plates_utils.get_scene_name()
     if not scene_name:
         msg = 'Current scene has no name. Are you sure you are in a WS Maya Scene?'
-        cmds.confirmDialog(message=msg, title='Wonder Studio Load Plates Utility', button=['Close'])
+        cmds.confirmDialog(message=msg, title='Flow Studio Load Plates Utility', button=['Close'])
         return
 
     scene_folder = os.path.dirname(scene_name)
@@ -74,7 +74,7 @@ def add_all_plates_ui() -> None:
     cut_data_list = plates_utils.get_cut_data_from_sequencer()
     if not cut_data_list:
         msg = 'Could not find any sequencer shot. Are you sure you are in a WS Maya Scene?'
-        cmds.confirmDialog(message=msg, title='Wonder Studio Load Plates Utility', button=['Close'])
+        cmds.confirmDialog(message=msg, title='Flow Studio Load Plates Utility', button=['Close'])
         return
 
     folder = plates_utils.browse_for_plate_folder()

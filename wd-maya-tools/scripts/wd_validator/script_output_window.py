@@ -1,4 +1,4 @@
-# Copyright 2023 Wonder Dynamics
+# Copyright 2025 Wonder Dynamics (an Autodesk Company)
 
 # This source code is licensed under the GNU GPLv3
 # found in the LICENSE file in the root directory of this source tree.
@@ -16,7 +16,7 @@ class ScriptOutputWindow(object):
 
     def __init__(self, gui_inst):
         self.window = 'script_terminal_window'
-        self.title = 'Wonder Dynamics Script Terminal'
+        self.title = 'Flow Studio Character Validator - Script Terminal'
         self.width = 400
 
         self.main_gui = gui_inst

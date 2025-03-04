@@ -1,13 +1,12 @@
-// Copyright 2023 Wonder Dynamics
+// Copyright 2025 Wonder Dynamics (an Autodesk Company)
 
 // This source code is licensed under the GNU GPLv3
 // found in the LICENSE file in the root directory of this source tree.
 
-global proc shelf_WonderDynamics () {
+global proc shelf_FlowStudio () {
     global string $gBuffStr;
     global string $gBuffStr0;
     global string $gBuffStr1;
-
 
     shelfButton
         -enableCommandRepeat 1
@@ -19,12 +18,12 @@ global proc shelf_WonderDynamics () {
         -manage 1
         -visible 1
         -preventOverride 0
-        -annotation "Validate and Export" 
+        -annotation "Validate and export characters for Flow Studio" 
         -enableBackground 0
         -backgroundColor 0 0 0 
         -highlightColor 0.321569 0.521569 0.65098 
         -align "center" 
-        -label "Validate and Export" 
+        -label "Flow Studio Character Validator" 
         -labelOffset 0
         -rotation 0
         -flipX 0
@@ -53,7 +52,7 @@ global proc shelf_WonderDynamics () {
         -manage 1
         -visible 1
         -preventOverride 0
-        -annotation "Import as image planes the clean plates downloaded from Wonder Studio" 
+        -annotation "Import clean plates downloaded from Flow Studio as image planes" 
         -enableBackground 0
         -backgroundColor 0 0 0 
         -highlightColor 0.321569 0.521569 0.65098 
